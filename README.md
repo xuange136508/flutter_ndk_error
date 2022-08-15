@@ -1,8 +1,8 @@
-Flutter Windows编写桌面端工具快速定位
+<h2>Flutter Windows编写桌面端工具快速定位</h2>
 
-Native Crash具有出错信息模糊、难以捕捉等特点，想比比JavaCrash难修复和定位。本篇介绍集成BreakPad用Flutter生成桌面端工具提高bug定位的效率。
+&emsp;&emsp;Native Crash具有出错信息模糊、难以捕捉等特点，想比比JavaCrash难修复和定位。本篇介绍集成BreakPad用Flutter生成桌面端工具提高bug定位的效率。
 
-一、定位本地崩溃问题
+<h5>一、定位本地崩溃问题</h5>
 
 首先，在JNI层模拟个空指针赋值的崩溃，如下：
 
@@ -17,33 +17,29 @@ Logcat的错误日志如下所示。
 
 
 
-信号机制是Linux进程间通信的一种重要方式，Linux信号一方面用于正常的进程间通信和同步，如任务控制（SIGINT，SIGTSTP，SIGKILL，SIGCONT）它还负责监控系统异常及中断。
+&emsp;&emsp;信号机制是Linux进程间通信的一种重要方式，Linux信号一方面用于正常的进程间通信和同步，如任务控制（SIGINT，SIGTSTP，SIGKILL，SIGCONT）它还负责监控系统异常及中断。
 
-当应用程序运行异常时，Linux内核将产生错误信号并通知当前进程。当前进程在接收到该错误信号后，可以有三种不同的处理方式。
+&emsp;&emsp;当应用程序运行异常时，Linux内核将产生错误信号并通知当前进程。当前进程在接收到该错误信号后，可以有三种不同的处理方式。
 
-忽略该信号。
-
-捕捉该信号并执行对应的信号处理函数（信号处理程序）。
-
-执行该信号的缺省操作（如SIGSEGV，其缺省操作是终止进程）。
+忽略该信号。捕捉该信号并执行对应的信号处理函数（信号处理程序）。执行该信号的缺省操作（如SIGSEGV，其缺省操作是终止进程）。
 
 ![image](https://user-images.githubusercontent.com/13035820/184601565-582ba1a3-8222-4e4b-b8f1-ba5c0afb3214.png)
 
 如果我们想不通过Logcat，或者想将错误信息上传或者存储本地， 比较高效的获取崩溃日志，我们有几个方案可选择。
 
-Bugly（腾讯）
+1.Bugly（腾讯）
 
-xCrash（爱奇艺）
+2.xCrash（爱奇艺）
 
-BreakPad（谷歌）
+3.BreakPad（谷歌）
 
 由于我们开发过程只需要本地的崩溃报错定位，所以选择谷歌的BreakPad方案获取日志。
 
 
+<br/>
+<h5>二、 BreakPad的使用</h5>
 
-二、 BreakPad的使用
-
-Google 开源 的 BreakPad，目前 Native 崩溃捕获中最为成熟的方案，当然还有爱奇艺的方案可供参考。可以理解为该库只是为了方便获取崩溃的墓碑文件。
+&emsp;&emsp;Google 开源 的 BreakPad，目前 Native 崩溃捕获中最为成熟的方案，当然还有爱奇艺的方案可供参考。可以理解为该库只是为了方便获取崩溃的墓碑文件。
 
 breakpad官方源码：https://chromium.googlesource.com/breakpad/breakpad/+/master
 
@@ -88,46 +84,49 @@ minidump_stackwalk C:\Users\admin\Desktop\bug\a.dmp >crash.txt  输出崩溃日�
 
 3 工具定位错误
 
-借助 ndk-stack 工具，您可以使用符号来表示来自 adb logcat 的堆栈轨迹或 /data/tombstones/ 中的 Tombstone。该工具会将共享库内的任何地址替换为源代码中对应的 <source-file>:<line-number>，从而简化调试流程。
+&emsp;&emsp;借助 ndk-stack 工具，您可以使用符号来表示来自 adb logcat 的堆栈轨迹或 /data/tombstones/ 中的 Tombstone。该工具会将共享库内的任何地址替换为源代码中对应的 <source-file>:<line-number>，从而简化调试流程。
 
-我们利用ndk-stack工具获取崩溃对应行数。这个工具能自动分析tombstone文件，能将崩溃时的调用内存地址和c ++代码一行一行对应起来。
+&emsp;&emsp;我们利用ndk-stack工具获取崩溃对应行数。这个工具能自动分析tombstone文件，能将崩溃时的调用内存地址和c ++代码一行一行对应起来。
 
 官方说明：https://developer.android.google.cn/ndk/guides/ndk-stack
 
-输入如下命令：
+<h5>输入如下命令：</h5>
 
-adb logcat | ndk-stack -sym  C:\E_Dev\AndroidProject\DemoProject\app\build\intermediates\cmake\debug\obj\arm64-v8a
+<h5>adb logcat | ndk-stack -sym  C:\E_Dev\AndroidProject\DemoProject\app\build\intermediates\cmake\debug\obj\arm64-v8a</h5>
 
  ![image](https://user-images.githubusercontent.com/13035820/184602068-dd8e1072-86bc-484b-bcc4-ef6a4fc19685.png)
 找到了是nativeCrash的265行报错。
-        
-        ![image](https://user-images.githubusercontent.com/13035820/184602114-370bbfa7-bfc3-4bcc-a81b-f5830f7369ab.png)
+ 
+ ![image](https://user-images.githubusercontent.com/13035820/184604546-4d970deb-67c5-405a-a7f0-346a4691f09a.png)
 
-        或者我们可以利用arm-linux-androideabi-addr2line工具找到报错地址。在之前的崩溃日志拿到地址为 0000000000015ed0。
+
+或者我们可以利用arm-linux-androideabi-addr2line工具找到报错地址。在之前的崩溃日志拿到地址为 0000000000015ed0。
 
 我们执行如下代码：
 
 aarch64-linux-android-addr2line -f -C -e  C:\E_Dev\AndroidProject\DemoProject\app\build\intermediates\cmake\debug\obj\arm64-v8a\libnative-lib.so 0000000000015ed0
 
 输出如下：
-        
-        ![image](https://user-images.githubusercontent.com/13035820/184602168-25b99634-af91-4984-817e-e5af4e8953d4.png)
+ ![image](https://user-images.githubusercontent.com/13035820/184604595-3c80200b-957f-43b5-aa9b-31494ee881d2.png)
 
-        同样能拿到对应的报错行数。
+
+同样能拿到对应的报错行数。
 
 注意：
 
 这里说一下为什么用cmake下的so不用strip_native_libs下的so。
-        
-        ![image](https://user-images.githubusercontent.com/13035820/184602219-4c729cc7-8bf2-4338-ad00-78cf9b5ecdb0.png)
+ 
+ ![image](https://user-images.githubusercontent.com/13035820/184604882-d6e19a82-56bf-49c5-8e0e-36cd05a8a661.png)
 
-        项目会包含有调试与无调试信息的两个版本 so。通常一次编译会先生成一个有含有调试信息的 so，再通过对这些含有调试信息的 so 进行一次 strip  产生对应的无调试信息 so，发布产品都是用这些 strip 后的 so。
+ 
 
-一般的分析崩溃日志的工具都是利用含有调试信息的 so， 结合崩溃信息，分析崩溃点在源代码中的行号。
+&emsp;&emsp;项目会包含有调试与无调试信息的两个版本 so。通常一次编译会先生成一个有含有调试信息的 so，再通过对这些含有调试信息的 so 进行一次 strip  产生对应的无调试信息 so，发布产品都是用这些 strip 后的 so。
+
+&emsp;&emsp;一般的分析崩溃日志的工具都是利用含有调试信息的 so， 结合崩溃信息，分析崩溃点在源代码中的行号。
 
 
-
-
+<br/>
+<h5>使用教程</h5>
 1 项目依赖插件：
 
 ![image](https://user-images.githubusercontent.com/13035820/184600616-a081fb85-9f5a-4696-9b53-dbac67b17ecc.png)
