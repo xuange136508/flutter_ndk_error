@@ -1,16 +1,7 @@
-import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
-import 'package:file_selector/file_selector.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_study/result_dialog.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:process_run/shell_run.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'CrashPage.dart';
-import 'FileChoosePage.dart';
+import 'function/CrashPage.dart';
+import 'function/FileChoosePage.dart';
+import 'function/LogParserPage.dart';
 
 List<Color> colors = [
   Colors.red,
@@ -31,7 +22,6 @@ List<Color> colors = [
 ];
 
 
-
 void main() {
   runApp(const MyApp());
 }
@@ -42,19 +32,24 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Flutter',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: getFunctionWidget(1),
+      home: getFunctionWidget(3),
     );
   }
 
-  Widget? getFunctionWidget(int type){
-    if(type == 1){
+  Widget? getFunctionWidget(int type) {
+    if (type == 1) {
       return const CrashPage(title: 'Crash定位工具');
-    }else if(type == 2){
+
+    } else if (type == 2) {
       return const FileChoosePage(title: '文件选择器');
+
+    } else if (type == 3) {
+      return const LogParserPage(title: '日志分析器');
+
     }
     return null;
   }

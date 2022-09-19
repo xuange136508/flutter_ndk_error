@@ -1,0 +1,3 @@
+
+
+2022-09-15 15:11:16.866 11514-11727/cn.mama.pregnant E/ExposuerUtil: {"os":"android","user_tr":"PVk8NxtNr79eNA7BdsK5ZbHYljFP7xoqg9zbuAvDKx8GvSPbZpDO6cnR4rDf1vrLpYXFcUv4fWrjLqPaFsulIQxQrv4b%2FfxGWPH0Gsluo1SzCVbjJXw%2BNgS%2FIx%2FYZ5dF96Mfb5E3zJb4Jp29uhJ6Ze9xBieCfJfXGOXcFvh%2FbOpJS%2F6ugSynrG3Yei4b%2BsnoAhwaHsgM0Fcjqxe2sYfIIv1xeeU6qNICZBYmMhuwNni80K0Z0CL4sXXwFjUcCOQhsETb8qy%2BEksnv3e1XUmyGVvRzw7nVActzNc0%2B5SfMPkmFFEFjxiXhbn%2Fa%2B%2FCMj3D","event":"duration","content":{"app":"pt","search_keyword":"","app_ver":"12.9.0","action":"","context_type":"","contextid":""},"properties":[{"itemid":"-1","item_mark":"{"item_mark_1":"1663225874","item_mark_2":"0"}","item_type":"pt_os","close_reason":"","position":"OS_INIT","sessionid":"70d8deba","time":"1663225876794"}]}

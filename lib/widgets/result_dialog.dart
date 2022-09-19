@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_study/text_view.dart';
+import 'package:flutter_study/widgets/text_view.dart';
 
 class ResultDialog extends StatefulWidget {
   final String? title;
