@@ -1,0 +1,11 @@
+
+
+## 文件说明
+
+CrashPage.dart 崩溃分析工具
+FileChoosePage.dart 文件选择器、命令行执行demo
+
+result_dialog.dart 对话框控件
+text_view.dart 对话框的文本控件
+
+
