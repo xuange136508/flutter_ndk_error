@@ -5,9 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:process_run/shell_run.dart';
 
+import '../ItemMark.dart';
+import '../ReportProperties.dart';
 
-//测试解析日志
-String testLog = "2022-09-15 15:11:16.866 11514-11727/cn.mama.pregnant E/ExposuerUtil: {\"os\":\"android\",\"user_tr\":\"PVk8NxtNr79eNA7BdsK5ZbHYljFP7xoqg9zbuAvDKx8GvSPbZpDO6cnR4rDf1vrLpYXFcUv4fWrjLqPaFsulIQxQrv4b%2FfxGWPH0Gsluo1SzCVbjJXw%2BNgS%2FIx%2FYZ5dF96Mfb5E3zJb4Jp29uhJ6Ze9xBieCfJfXGOXcFvh%2FbOpJS%2F6ugSynrG3Yei4b%2BsnoAhwaHsgM0Fcjqxe2sYfIIv1xeeU6qNICZBYmMhuwNni80K0Z0CL4sXXwFjUcCOQhsETb8qy%2BEksnv3e1XUmyGVvRzw7nVActzNc0%2B5SfMPkmFFEFjxiXhbn%2Fa%2B%2FCMj3D\",\"event\":\"duration\",\"content\":{\"app\":\"pt\",\"search_keyword\":"",\"app_ver\":\"12.9.0\",\"action\":"",\"context_type\":"",\"contextid\":""},\"properties\":[{\"itemid\":\"-1\",\"item_mark\":\"{\"item_mark_1\":\"1663225874\",\"item_mark_2\":\"0\"}\",\"item_type\":\"pt_os\",\"close_reason\":"",\"position\":\"OS_INIT\",\"sessionid\":\"70d8deba\",\"time\":\"1663225876794\"}]}";
+
+
 
 class LogParserPage extends StatefulWidget {
   const LogParserPage({super.key, required this.title});
@@ -71,9 +73,10 @@ class LogParserPageState extends State<LogParserPage> {
   }
 
   void parseDevLog() async {
-    //File file = File("C:\\Users\\admin\\Desktop\\config.gradle");
-    //String contents = await file.readAsString();
-    String contents = testLog;
+    // File file = File("C:\\Users\\admin\\Desktop\\config.gradle");
+    File file = File("C:\\Users\\admin\\Desktop\\TEST.json");
+    String contents = await file.readAsString();
+    // String contents = testLog;
     printLog("内容：$contents");
 
     //正则匹配
@@ -84,12 +87,15 @@ class LogParserPageState extends State<LogParserPage> {
     // RegExp reg = RegExp(r'is[a-zA-Z0-9_]* = [t|r|u|e|f|a|l|s|e]+');
     // 为了匹配等号左右空格无格式化的情况
     //RegExp reg = RegExp(r'is[a-zA-Z0-9_]* *= *[a-z]*.{1}');
-    RegExp reg = RegExp(r'is[a-zA-Z0-9_]* = [a-z]*.{1}');
+    //RegExp reg = RegExp(r'is[a-zA-Z0-9_]* = [a-z]*.{1}');
+    RegExp reg = RegExp(r'(?<=ExposuerUtil:)(.*)');
     if (reg.hasMatch(contents)) {
       var matches = reg.allMatches(contents);
-      printLog("${matches.length}");
+      //printLog("${matches.length}");
       for (int i = 0; i < matches.length; i++) {
         printLog("${matches.elementAt(i).group(0)}");
+        //解析上报数据
+        jsonDataParser(matches.elementAt(i).group(0));
       }
     } else {
       printLog("匹配失败");
@@ -113,4 +119,15 @@ class LogParserPageState extends State<LogParserPage> {
       print(object);
     }
   }
+
+  void jsonDataParser(String? jsonData) {
+    ReportProperties reportProperties = ReportProperties.fromJson(jsonDecode(jsonData!));
+    printLog("打印属性：${reportProperties.properties?.first.itemMark}");
+    //如果是itemMark则二次格式化
+    String? mark = reportProperties.properties?.first.itemMark;
+    ItemMark itemMark =
+        ItemMark.fromJson(jsonDecode((mark?.isEmpty == true) ? "" : mark!));
+    printLog("打印itemMark：${itemMark.itemName}");
+  }
+
 }
