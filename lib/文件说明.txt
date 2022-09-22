@@ -2,6 +2,7 @@
 
 ## 文件说明
 
+LogParserPage.dart 日志分析工具
 CrashPage.dart 崩溃分析工具
 FileChoosePage.dart 文件选择器、命令行执行demo
 

@@ -1,14 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:process_run/shell_run.dart';
-
 import '../ItemMark.dart';
 import '../ReportProperties.dart';
-
-
 
 
 class LogParserPage extends StatefulWidget {
@@ -34,8 +29,7 @@ class LogParserPageState extends State<LogParserPage> {
     super.dispose();
   }
 
-  LogParserPageState() {
-  }
+  LogParserPageState();
 
   @override
   Widget build(BuildContext context) {
@@ -73,28 +67,17 @@ class LogParserPageState extends State<LogParserPage> {
   }
 
   void parseDevLog() async {
-    // File file = File("C:\\Users\\admin\\Desktop\\config.gradle");
     File file = File("C:\\Users\\admin\\Desktop\\TEST.json");
     String contents = await file.readAsString();
-    // String contents = testLog;
     printLog("内容：$contents");
-
-    //正则匹配
-    //教程：https://www.runoob.com/regexp/regexp-rule.html
-    //+ 号代表前面的字符必须至少出现一次（1次或多次）。
-    //* 号代表前面的字符可以不出现，也可以出现一次或者多次（0次、或1次、或多次）。
-    //? 问号代表前面的字符最多只可以出现一次（0次或1次）。
-    // RegExp reg = RegExp(r'is[a-zA-Z0-9_]* = [t|r|u|e|f|a|l|s|e]+');
-    // 为了匹配等号左右空格无格式化的情况
-    //RegExp reg = RegExp(r'is[a-zA-Z0-9_]* *= *[a-z]*.{1}');
-    //RegExp reg = RegExp(r'is[a-zA-Z0-9_]* = [a-z]*.{1}');
+    // 正则匹配
     RegExp reg = RegExp(r'(?<=ExposuerUtil:)(.*)');
     if (reg.hasMatch(contents)) {
       var matches = reg.allMatches(contents);
       //printLog("${matches.length}");
       for (int i = 0; i < matches.length; i++) {
         printLog("${matches.elementAt(i).group(0)}");
-        //解析上报数据
+        // 解析上报数据
         jsonDataParser(matches.elementAt(i).group(0));
       }
     } else {
@@ -114,19 +97,23 @@ class LogParserPageState extends State<LogParserPage> {
   }
 
 
+  /// 日志输出
+  /// */
   void printLog(Object? object) {
     if (kDebugMode) {
       print(object);
     }
   }
 
+
+  /// JSON解析日志
+  /// */
   void jsonDataParser(String? jsonData) {
     ReportProperties reportProperties = ReportProperties.fromJson(jsonDecode(jsonData!));
     printLog("打印属性：${reportProperties.properties?.first.itemMark}");
-    //如果是itemMark则二次格式化
+    //包含itemMark需二次解析
     String? mark = reportProperties.properties?.first.itemMark;
-    ItemMark itemMark =
-        ItemMark.fromJson(jsonDecode((mark?.isEmpty == true) ? "" : mark!));
+    ItemMark itemMark = ItemMark.fromJson(jsonDecode((mark?.isEmpty == true) ? "" : mark!));
     printLog("打印itemMark：${itemMark.itemName}");
   }
 
