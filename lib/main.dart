@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'function/CrashPage.dart';
 import 'function/FileChoosePage.dart';
 import 'function/LogParserPage.dart';
+import 'log/page/main/main_page.dart';
+import 'package:oktoast/oktoast.dart';
 
 List<Color> colors = [
   Colors.red,
@@ -31,13 +33,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: getFunctionWidget(3),
-    );
+    return OKToast(
+        child: MaterialApp(
+          title: 'Flutter',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+      home: getFunctionWidget(4),
+    ));
   }
 
   Widget? getFunctionWidget(int type) {
@@ -49,6 +52,9 @@ class MyApp extends StatelessWidget {
 
     } else if (type == 3) {
       return const LogParserPage(title: '日志分析器');
+
+    } else if (type == 4) {
+      return const MainPage();
 
     }
     return null;

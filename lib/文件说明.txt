@@ -1,8 +1,12 @@
 
-
 ## 文件说明
 
-LogParserPage.dart 日志分析工具
+main_page.dart 妈网上报日志分析器
+  -- log
+     -- page 日志页面
+     -- widget 常用的一些组件
+
+LogParserPage.dart 日志解析demo
 CrashPage.dart 崩溃分析工具
 FileChoosePage.dart 文件选择器、命令行执行demo
 
