@@ -135,8 +135,9 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
           }
           // 添加日志
           logList.add(line);
+
           // 通知刷新列表
-          notifyListeners();
+           notifyListeners();
           // 滚动到底部
           if (isShowLast) {
             scrollController.jumpTo(

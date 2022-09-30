@@ -61,6 +61,7 @@ class _MainPageState extends BasePage<MainPage, MainViewModel> {
     );
   }
 
+
   Widget buildContent(int value) {
     if (value == 1) {
       return AndroidLogPage(viewModel.adbPath, viewModel.deviceId);
