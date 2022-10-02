@@ -112,18 +112,45 @@ class _AndroidLogPageState
 
         //adb设置
         AdbSettingDialog(viewModel.adbPath),
+        const SizedBox(height: 10),
+
+        //事件类型过滤
+        filterEventType(),
 
         //上报点位筛选框
         _buildReportView(),
 
         //日志内容显示框
-        _buildLogContentView(),
+        //_buildLogContentView(),
         const SizedBox(height: 10),
       ],
     );
   }
 
-  List<DataRow> dateRows = [];
+
+  /// 选择点位事件类型
+  /// */
+  Row filterEventType() {
+    return Row(children: [
+      const TextView("事件类型："),
+      Container(
+        height: 30,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: PopUpMenuButton(
+          viewModel: viewModel.eventTypeViewModel,
+          menuTip: "选择事件类型",
+        ),
+      )
+    ]);
+  }
+
+  // 问题
+  // 1 日志重复的问题
+  // 2 一个日志包含两个上报
+  // 3 日志超4k要裁剪组合的问题【方案：裁剪输出】
 
   /// 上报日志分析的表格
   /// */
@@ -134,47 +161,52 @@ class _AndroidLogPageState
           color: const Color(0xFFF0F0F0),
           child: Consumer<AndroidLogViewModel>(
             builder: (context, viewModel, child) {
-              var logList = viewModel.logList;
+              // var logList = viewModel.logList;
+              //
+              // // showToast("打印长度:${logList.length}");
+              // // List<DataRow> dateRows = [];
+              // // for (int i = 0; i < logList.length; i++) {
+              // if(logList.isNotEmpty){
+              //   // 解析上报日志
+              //   ReportProperties? reportProperties = parseDevLog(logList[logList.length - 1]);
+              //   if(reportProperties != null){
+              //     String? position = reportProperties?.properties?.first.position;
+              //     String? itemType = reportProperties?.properties?.first.itemType;
+              //     String? event = reportProperties?.event;
+              //     String? itemId = reportProperties?.properties?.first.itemid;
+              //     String? itemMark = reportProperties?.properties?.first.itemMark;
+              //     //包含itemMark需二次解析
+              //     ItemMark? itemMarkBean = parseItemMark(itemMark);
+              //     String? itemName = itemMarkBean?.itemName;
+              //     String? itemMark1 = itemMarkBean?.itemMark1;
+              //     String? itemMark2 = itemMarkBean?.itemMark2;
+              //
+              //     dateRows.add(DataRow(
+              //       cells: [
+              //         DataCell(getCommonText((dateRows.length + 1).toString())),
+              //         DataCell(getCommonText(position)),
+              //         DataCell(getCommonText(itemType)),
+              //         DataCell(getCommonText(event)),
+              //         DataCell(getCommonText(itemId)),
+              //         DataCell(getCommonText(itemName)),
+              //         DataCell(getCommonText(itemMark1)),
+              //         DataCell(getCommonText(itemMark2)),
+              //         //DataCell(getCommonText('$itemMark')),
+              //       ],
+              //     ));
+              //   }
+              //   // }
+              // }
 
-              // showToast("打印长度:${logList.length}");
-              // List<DataRow> dateRows = [];
-              // for (int i = 0; i < logList.length; i++) {
-              if(logList.isNotEmpty){
-                // 解析上报日志
-                ReportProperties? reportProperties = parseDevLog(logList[logList.length - 1]);
-                if(reportProperties != null){
-                  String? position = reportProperties?.properties?.first.position;
-                  String? itemType = reportProperties?.properties?.first.itemType;
-                  String? event = reportProperties?.event;
-                  String? itemId = reportProperties?.properties?.first.itemid;
-                  String? itemMark = reportProperties?.properties?.first.itemMark;
-                  //包含itemMark需二次解析
-                  ItemMark? itemMarkBean = parseItemMark(itemMark);
-                  String? itemName = itemMarkBean?.itemName;
-                  String? itemMark1 = itemMarkBean?.itemMark1;
-                  String? itemMark2 = itemMarkBean?.itemMark2;
-
-                  dateRows.add(DataRow(
-                    cells: [
-                      DataCell(getCommonText((dateRows.length + 1).toString())),
-                      DataCell(getCommonText(position)),
-                      DataCell(getCommonText(itemType)),
-                      DataCell(getCommonText(event)),
-                      DataCell(getCommonText(itemId)),
-                      DataCell(getCommonText(itemName)),
-                      DataCell(getCommonText(itemMark1)),
-                      DataCell(getCommonText(itemMark2)),
-                      //DataCell(getCommonText('$itemMark')),
-                    ],
-                  ));
-                }
-                // }
+              if(viewModel.dateRows.length == 1000){
+                showToast("上报日志过多，建议清理!");
               }
-
-              if(dateRows.length == 1000){
-                showToast("上报日志已满，建议清理");
-              }
+              // 上报日志滚动到底部
+              // viewModel?.logScrollController?.jumpTo(
+              //   viewModel?.logScrollController?.position.maxScrollExtent??0,
+              // );
               return SingleChildScrollView(
+                controller: viewModel.logScrollController,
                 scrollDirection: Axis.vertical,
                 child: DataTable(columns: [
                   DataColumn(label: getCommonText('序号')),
@@ -186,7 +218,7 @@ class _AndroidLogPageState
                   DataColumn(label: getCommonText('扩展内容1(item_mark_1)')),
                   DataColumn(label: getCommonText('扩展内容2(item_mark_2)')),
                   //DataColumn(label: getCommonText('扩展内容(item_mark)')),
-                ], rows: dateRows),
+                ], rows: viewModel.dateRows),
               );
             },
           )),
@@ -196,8 +228,9 @@ class _AndroidLogPageState
   /// 清除上报日志
   /// */
   void clearReport(){
-    dateRows.clear();
+    viewModel.dateRows.clear();
   }
+
 
 
   /// 设置输出文案格式
@@ -402,7 +435,9 @@ class _AndroidLogPageState
     super.dispose();
     viewModel.kill();
     viewModel.scrollController.dispose();
+    viewModel.logScrollController.dispose();
   }
+
 
 
 }

@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_list_view/flutter_list_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../ItemMark.dart';
+import '../../../ReportProperties.dart';
 import '../../page/common/base_view_model.dart';
 import '../../widget/pop_up_menu_button.dart';
 import '../common/app.dart';
@@ -22,6 +25,9 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
 
   List<String> logList = [];
 
+  // 上报日志滚动控制器
+  ScrollController logScrollController = ScrollController();
+
   FlutterListViewController scrollController = FlutterListViewController();
 
   TextEditingController filterController = TextEditingController();
@@ -37,6 +43,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
 
   Process? _process;
 
+  // 日志等级
   List<FilterLevel> filterLevel = [
     FilterLevel("Verbose", "*:V"),
     FilterLevel("Debug", "*:D"),
@@ -44,8 +51,26 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     FilterLevel("Warn", "*:W"),
     FilterLevel("Error", "*:E"),
   ];
-  PopUpMenuButtonViewModel<FilterLevel> filterLevelViewModel =
-      PopUpMenuButtonViewModel();
+  PopUpMenuButtonViewModel<FilterLevel> filterLevelViewModel = PopUpMenuButtonViewModel();
+
+  // 事件类型
+  List<FilterLevel> filterEventType = [
+    FilterLevel("全部", ""),
+    FilterLevel("曝光", "impression"),
+    FilterLevel("点击", "click"),
+    FilterLevel("分享", "share"),
+    FilterLevel("收藏", "collect"),
+    FilterLevel("取消收藏", "uncollect"),
+    FilterLevel("关注", "attention"),
+    FilterLevel("取消关注", "unattention"),
+    FilterLevel("关闭", "close"),
+    FilterLevel("拖拉", "drag"),
+    FilterLevel("长按", "longPress"),
+    FilterLevel("点赞", "applaud"),
+    FilterLevel("取消点赞", "unapplaud")
+  ];
+  PopUpMenuButtonViewModel<FilterLevel> eventTypeViewModel = PopUpMenuButtonViewModel();
+
 
   AndroidLogViewModel(
     BuildContext context,
@@ -86,7 +111,14 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
       kill();
       listenerLog();
     });
+
+    // 事件类型筛选设置
+    eventTypeViewModel.list = filterEventType;
+    eventTypeViewModel.selectValue = filterEventType.first;
   }
+
+
+
 
   void init() async {
     adbPath = await App().getAdbPath();
@@ -130,20 +162,29 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
         if (filterContent.isNotEmpty
             ? line.toLowerCase().contains(filterContent.toLowerCase())
             : true) {
-          if (logList.length > 1000) {
+          if (logList.length > 500) {
             logList.removeAt(0);
           }
           // 添加日志
           logList.add(line);
 
+          // 上报日志解析处理
+          handleReportList(line);
+
+          // 上报日志滚动到底部
+          logScrollController.jumpTo(
+            logScrollController.position.maxScrollExtent,
+          );
+
           // 通知刷新列表
            notifyListeners();
+
           // 滚动到底部
-          if (isShowLast) {
-            scrollController.jumpTo(
-              scrollController.position.maxScrollExtent,
-            );
-          }
+          // if (isShowLast) {
+          //   scrollController.jumpTo(
+          //     scrollController.position.maxScrollExtent,
+          //   );
+          // }
         }
       });
     });
@@ -217,6 +258,15 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
 
 
 
+  /// 筛选事件类型
+  /// */
+  void listenerEventType() {
+    String event = eventTypeViewModel.selectValue?.value ?? "";
+    // 过滤当前日志类型，通知页面刷新
+
+
+  }
+
 
   void copyLog(String log) {
     Clipboard.setData(ClipboardData(text: log));
@@ -227,6 +277,156 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     findIndex = -1;
     notifyListeners();
   }
+
+
+
+  // 表格数据集合
+  List<DataRow> dateRows = [];
+
+  //过滤重复日志
+  String previousLog = "";
+
+  /// 上报日志解析处理
+  /// */
+  void handleReportList(String curLog) {
+    if (curLog?.isEmpty == true) {
+      return;
+    }
+    if(previousLog != "" && curLog.startsWith(previousLog)){
+      //curLog.replaceFirst(previousLog, "");
+      //dateRows.removeLast();
+      return;
+    }
+    previousLog = curLog;
+    // showToast("打印长度:${logList.length}");
+    // List<DataRow> dateRows = [];
+    // for (int i = 0; i < logList.length; i++) {
+    // 解析上报日志
+    ReportProperties? reportProperties = parseDevLog(curLog);
+    if (reportProperties != null) {
+      String? position = reportProperties?.properties?.first.position;
+      String? itemType = reportProperties?.properties?.first.itemType;
+      String? event = reportProperties?.event;
+      String? itemId = reportProperties?.properties?.first.itemid;
+      String? itemMark = reportProperties?.properties?.first.itemMark;
+      //包含itemMark需二次解析
+      ItemMark? itemMarkBean = parseItemMark(itemMark);
+      String? itemName = itemMarkBean?.itemName;
+      String? itemMark1 = itemMarkBean?.itemMark1;
+      String? itemMark2 = itemMarkBean?.itemMark2;
+
+      dateRows.add(DataRow(
+        cells: [
+          DataCell(getCommonText((dateRows.length + 1).toString())),
+          DataCell(getCommonText(position)),
+          DataCell(getCommonText(itemType)),
+          DataCell(getCommonText(event)),
+          DataCell(getCommonText(itemId)),
+          DataCell(getCommonText(itemName)),
+          DataCell(getCommonText(itemMark1)),
+          DataCell(getCommonText(itemMark2)),
+          //DataCell(getCommonText('$itemMark')),
+        ],
+      ));
+    }
+    // }
+  }
+
+  /// 清除上报日志
+  /// */
+  void clearReport(){
+    dateRows.clear();
+  }
+
+
+  /// 日志解析
+  /// */
+  ReportProperties? parseDevLog(String? contents) {
+    if(contents?.isEmpty == true || contents == null){
+      return null;
+    }
+    try{
+      printLog("内容：$contents");
+      // 正则匹配
+      RegExp reg = RegExp(r'(?<=ExposuerUtil:)(.*)');
+      if (reg.hasMatch(contents)) {
+        var matches = reg.allMatches(contents);
+        //printLog("${matches.length}");
+        for (int i = 0; i < matches.length; i++) {
+          printLog("${matches.elementAt(i).group(0)}");
+          // 解析上报数据
+          String? jsonData = matches.elementAt(i).group(0);
+          ReportProperties reportProperties = ReportProperties.fromJson(jsonDecode(jsonData!));
+          return reportProperties;
+          // printLog("打印属性：${reportProperties.properties?.first.itemMark}");
+          // return reportProperties.properties?.first.position;
+          //包含itemMark需二次解析
+          // String? mark = reportProperties.properties?.first.itemMark;
+          // ItemMark itemMark = ItemMark.fromJson(jsonDecode((mark?.isEmpty == true) ? "" : mark!));
+          // printLog("打印itemMark：${itemMark.itemName}");
+        }
+      } else {
+        printLog("匹配失败");
+      }
+      return null;
+    }
+    on Exception{
+      printLog('解析异常');
+      return null;
+    }
+  }
+
+  /// ItemMark解析
+  /// */
+  ItemMark? parseItemMark(String? itemMark) {
+    if(itemMark?.isEmpty == true || itemMark == null){
+      return null;
+    }
+    try {
+      ItemMark itemMarkBean = ItemMark.fromJson(
+          jsonDecode(itemMark!));
+      return itemMarkBean;
+    } on Exception {
+      printLog('解析异常');
+      return null;
+    }
+  }
+
+  /// 日志输出
+  /// */
+  void printLog(Object? object) {
+    if (kDebugMode) {
+      // print(object);
+    }
+  }
+
+
+  /// 设置输出文案格式
+  /// */
+  Expanded getCommonText(String? content) {
+    return Expanded(
+        child: Text(validateInput(content),
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.left,
+            style: const TextStyle(
+              fontSize: 14,
+              //backgroundColor: Colors.red
+            )));
+
+  }
+
+
+  /// 过滤判空
+  /// */
+  String validateInput(String? input) {
+    if (input?.isNotEmpty ?? false) {
+      return input!!;
+    } else {
+      return "";
+    }
+  }
+
+
 }
 
 class FilterLevel extends PopUpMenuItem {
