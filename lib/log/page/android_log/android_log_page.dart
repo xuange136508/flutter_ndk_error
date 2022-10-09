@@ -147,10 +147,7 @@ class _AndroidLogPageState
     ]);
   }
 
-  // 问题
-  // 1 日志重复的问题
-  // 2 一个日志包含两个上报
-  // 3 日志超4k要裁剪组合的问题【方案：裁剪输出】
+
 
   /// 上报日志分析的表格
   /// */
@@ -161,6 +158,11 @@ class _AndroidLogPageState
           color: const Color(0xFFF0F0F0),
           child: Consumer<AndroidLogViewModel>(
             builder: (context, viewModel, child) {
+              // return SingleChildScrollView(
+              //     controller: viewModel.logScrollController,
+              //     scrollDirection: Axis.vertical,
+              //     child: _getBrandList()
+              // );
               // var logList = viewModel.logList;
               //
               // // showToast("打印长度:${logList.length}");
@@ -205,11 +207,16 @@ class _AndroidLogPageState
               // viewModel?.logScrollController?.jumpTo(
               //   viewModel?.logScrollController?.position.maxScrollExtent??0,
               // );
+              /// 写法一
+              /// */
+              /*
               return SingleChildScrollView(
                 controller: viewModel.logScrollController,
                 scrollDirection: Axis.vertical,
+                // child: SingleChildScrollView(
+                // scrollDirection: Axis.horizontal,
                 child: DataTable(columns: [
-                  DataColumn(label: getCommonText('序号')),
+                  DataColumn(label: getCommonText('序号', isLimit: true)),
                   DataColumn(label: getCommonText('点位名(position)')),
                   DataColumn(label: getCommonText('点位类型(item_type)')),
                   DataColumn(label: getCommonText('事件类型(event)')),
@@ -219,7 +226,51 @@ class _AndroidLogPageState
                   DataColumn(label: getCommonText('扩展内容2(item_mark_2)')),
                   //DataColumn(label: getCommonText('扩展内容(item_mark)')),
                 ], rows: viewModel.dateRows),
+              // ),
+              );*/
+
+              /// 写法二
+              /// */
+              return SingleChildScrollView(
+                  controller: viewModel.logScrollController,
+                  scrollDirection: Axis.vertical,
+                  child:  Table(
+                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                    // columnWidths: const {
+                    //   0: FlexColumnWidth(1.5),
+                    //   1: FlexColumnWidth(4),
+                    //   2: FlexColumnWidth(2.5),
+                    // },
+                    children:
+                    viewModel.tableRows
+                    /*
+                    [
+                      // TableRow(
+                      //     children: [
+                      //       getCommonText('序号', isLimit: true),
+                      //       getCommonText('点位名(position)'),
+                      //       getCommonText('点位类型(item_type)'),
+                      //       getCommonText('事件类型(event)'),
+                      //       getCommonText('点位内容ID(item_id)'),
+                      //       getCommonText('点位内容名称(item_name)'),
+                      //       getCommonText('扩展内容1(item_mark_1)'),
+                      //       getCommonText('扩展内容2(item_mark_2)'),
+                      //       //DataColumn(label: getCommonText('扩展内容(item_mark)')),
+                      //     ]
+                      // ),
+                      TableRow(
+                        children: _getBrandItemCell( "么天麟", "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"),
+                      ),
+                      TableRow(
+                        children: _getBrandItemCell("么天麟", "8527"),
+                      ),
+                      TableRow(
+                        children: _getBrandItemCell( "么天麟", "8527"),
+                      ),
+                    ],*/
+                  )
               );
+
             },
           )),
     );
@@ -235,16 +286,19 @@ class _AndroidLogPageState
 
   /// 设置输出文案格式
   /// */
-  Expanded getCommonText(String? content) {
-    return Expanded(
-        child: Text(validateInput(content),
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.left,
-            style: const TextStyle(
-                fontSize: 14,
-                //backgroundColor: Colors.red
-            )));
+  SizedBox getCommonText(String? content,{bool isLimit = false}) {
+    return SizedBox(
+      width: isLimit? 30: 160,
+            child: Text(validateInput(content),
+                //overflow: TextOverflow.ellipsis,
+                softWrap: true,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 14,
+                    //backgroundColor: Colors.red
+                ))
 
+    );
   }
 
 
@@ -438,6 +492,64 @@ class _AndroidLogPageState
     viewModel.logScrollController.dispose();
   }
 
+
+
+  //测试
+  Widget _getBrandList() {
+    double screenWidth  = MediaQuery.of(context).size.width;
+    return Container(
+        margin: const EdgeInsets.fromLTRB(6, 60, 6, 14),
+        padding: const EdgeInsets.all(16),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+        ),
+        child: Table(
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          columnWidths: const {
+            0: FlexColumnWidth(1.5),
+            1: FlexColumnWidth(4),
+            2: FlexColumnWidth(2.5),
+          },
+          children: [
+            const TableRow(
+                children: [
+                  Text('排名', style: TextStyle(color: Color(0xFF828CA0), fontSize: 12,)),
+                  Text('顾问名', style: TextStyle(color: Color(0xFF828CA0), fontSize: 12,),),
+                  Text('售卖量', style: TextStyle(color: Color(0xFF828CA0), fontSize: 12,),),
+                ]
+            ),
+            TableRow(
+              children: _getBrandItemCell( "么天麟", "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"),
+            ),
+            TableRow(
+              children: _getBrandItemCell("么天麟", "8527"),
+            ),
+            TableRow(
+              children: _getBrandItemCell( "么天麟", "8527"),
+            ),
+          ],
+        )
+    );
+  }
+
+  List<Widget> _getBrandItemCell(String name, String num) {
+    List<Widget> lists = [
+      Text(num, style: const TextStyle(color: Color(0xFF111E36), fontSize: 16, fontWeight: FontWeight.w500)),
+      Container(
+        height: 50,
+        child: Row(
+          children: <Widget>[
+            Text(name, style: const TextStyle(color: Color(0xFF111E36), fontSize: 14)),
+            SizedBox(width: 10,),
+            Text(name, style: const TextStyle(color: Color(0xFF111E36), fontSize: 14))
+          ],
+        ),
+      ),
+      Text(num, style: const TextStyle(color: Color(0xFF111E36), fontSize: 16, fontWeight: FontWeight.w500))
+    ];
+    return  lists;
+  }
 
 
 }

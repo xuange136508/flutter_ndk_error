@@ -172,9 +172,9 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
           handleReportList(line);
 
           // 上报日志滚动到底部
-          logScrollController.jumpTo(
-            logScrollController.position.maxScrollExtent,
-          );
+          // logScrollController.jumpTo(
+          //   logScrollController.position.maxScrollExtent,
+          // );
 
           // 通知刷新列表
            notifyListeners();
@@ -278,7 +278,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     notifyListeners();
   }
 
-
+  List<TableRow> tableRows = [];
 
   // 表格数据集合
   List<DataRow> dateRows = [];
@@ -317,7 +317,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
 
       dateRows.add(DataRow(
         cells: [
-          DataCell(getCommonText((dateRows.length + 1).toString())),
+          DataCell(getCommonText((dateRows.length + 1).toString(), isLimit: true)),
           DataCell(getCommonText(position)),
           DataCell(getCommonText(itemType)),
           DataCell(getCommonText(event)),
@@ -328,6 +328,27 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
           //DataCell(getCommonText('$itemMark')),
         ],
       ));
+
+      //测试
+      tableRows.add(TableRow(
+              children: [
+                getCommonText((dateRows.length + 1).toString(), isLimit: true),
+                getCommonText(position),
+                getCommonText(itemType),
+                getCommonText(event),
+                getCommonText(itemId),
+                getCommonText(itemName),
+                getCommonText(itemMark1),
+                getCommonText(itemMark2),
+                //getCommonText('$itemMark'),
+              ]
+          ));
+      //const Divider(height: 1.0, indent: 60.0, color: Colors.grey)
+
+      // 上报日志滚动到底部
+      logScrollController.jumpTo(
+        logScrollController.position.maxScrollExtent,
+      );
     }
     // }
   }
@@ -403,18 +424,44 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
 
   /// 设置输出文案格式
   /// */
-  Expanded getCommonText(String? content) {
-    return Expanded(
+  SizedBox getCommonText(String? content,{bool isLimit = false}) {
+    return SizedBox(
+        width: isLimit? 30: 160,
         child: Text(validateInput(content),
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.left,
+            //overflow: TextOverflow.ellipsis,
+            softWrap: true,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 14,
               //backgroundColor: Colors.red
-            )));
-
+            ))
+    );
   }
-
+  // Expanded getCommonText(String? content) {
+  //   return Expanded(
+  //       child: Text(validateInput(content),
+  //           overflow: TextOverflow.ellipsis,
+  //           textAlign: TextAlign.left,
+  //           style: const TextStyle(
+  //             fontSize: 14,
+  //             //backgroundColor: Colors.red
+  //           )));
+  //
+  // }
+  // ConstrainedBox getCommonText(String? content) {
+  //   return ConstrainedBox(
+  //       constraints: const BoxConstraints(
+  //         maxWidth: 100,
+  //       ),
+  //       child: Text(validateInput(content),
+  //           overflow: TextOverflow.ellipsis,
+  //           textAlign: TextAlign.left,
+  //           style: const TextStyle(
+  //               fontSize: 14,
+  //               //backgroundColor: Colors.red
+  //           ))
+  //   );
+  // }
 
   /// 过滤判空
   /// */
