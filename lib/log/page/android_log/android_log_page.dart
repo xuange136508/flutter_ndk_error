@@ -16,6 +16,7 @@ import '../../widget/pop_up_menu_button.dart';
 import '../common/base_page.dart';
 import 'android_log_view_model.dart';
 
+
 class AndroidLogPage extends StatefulWidget {
   final String deviceId;
   final String adbPathParams;
@@ -117,6 +118,9 @@ class _AndroidLogPageState
         //事件类型过滤
         filterEventType(),
 
+        const SizedBox(height: 10),
+        //表头
+        _buildTableHead(),
         //上报点位筛选框
         _buildReportView(),
 
@@ -132,6 +136,7 @@ class _AndroidLogPageState
   /// */
   Row filterEventType() {
     return Row(children: [
+      const SizedBox(width: 20),
       const TextView("事件类型："),
       Container(
         height: 30,
@@ -155,7 +160,7 @@ class _AndroidLogPageState
     return Expanded(
       child: Container(
           width: MediaQuery.of(context).size.width,
-          color: const Color(0xFFF0F0F0),
+          color: const Color(0x66F0F0F0),
           child: Consumer<AndroidLogViewModel>(
             builder: (context, viewModel, child) {
               // return SingleChildScrollView(
@@ -241,8 +246,10 @@ class _AndroidLogPageState
                     //   1: FlexColumnWidth(4),
                     //   2: FlexColumnWidth(2.5),
                     // },
-                    children:
-                    viewModel.tableRows
+                    children:  viewModel.tableRows,
+                    border: const TableBorder(
+                      horizontalInside: BorderSide(color: Color(0xFFC0C0C0), width: 0.3),
+                    ),
                     /*
                     [
                       // TableRow(
@@ -259,12 +266,6 @@ class _AndroidLogPageState
                       //     ]
                       // ),
                       TableRow(
-                        children: _getBrandItemCell( "么天麟", "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"),
-                      ),
-                      TableRow(
-                        children: _getBrandItemCell("么天麟", "8527"),
-                      ),
-                      TableRow(
                         children: _getBrandItemCell( "么天麟", "8527"),
                       ),
                     ],*/
@@ -276,6 +277,51 @@ class _AndroidLogPageState
     );
   }
 
+
+
+  /// 表头
+  /// */
+  Container _buildTableHead() {
+    return Container(
+      //margin: EdgeInsets.only(left: 50, right: 50),
+      //padding: const EdgeInsets.only(top: 10),
+        width: MediaQuery.of(context).size.width,
+        height: 50,
+        color: const Color(0x66F0F0F0),
+        //color: const Color(0xFF000000),
+        child: Consumer<AndroidLogViewModel>(
+          builder: (context, viewModel, child) {
+            return Table(
+              // columnWidths: const {
+              //   0: FlexColumnWidth(1.5),
+              //   1: FlexColumnWidth(4),
+              //   2: FlexColumnWidth(2.5),
+              // },
+                defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                border: const TableBorder(
+                  bottom: BorderSide(color: Color(0xFFC0C0C0), width: 0.3),
+                ),
+                children:[
+                  TableRow(
+                      children: [
+                        getCommonText('序号', isLimit: true),
+                        getCommonText('点位名(position)'),
+                        getCommonText('点位类型(item_type)'),
+                        getCommonText('事件类型(event)'),
+                        getCommonText('点位内容ID(item_id)'),
+                        getCommonText('点位内容名称(item_name)'),
+                        getCommonText('扩展内容1(item_mark_1)'),
+                        getCommonText('扩展内容2(item_mark_2)'),
+                        //DataColumn(label: getCommonText('扩展内容(item_mark)')),
+                      ]
+                  ),
+                ]);
+          },
+        ));
+  }
+
+
+
   /// 清除上报日志
   /// */
   void clearReport(){
@@ -286,19 +332,21 @@ class _AndroidLogPageState
 
   /// 设置输出文案格式
   /// */
-  SizedBox getCommonText(String? content,{bool isLimit = false}) {
-    return SizedBox(
-      width: isLimit? 30: 160,
-            child: Text(validateInput(content),
-                //overflow: TextOverflow.ellipsis,
-                softWrap: true,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 14,
-                    //backgroundColor: Colors.red
-                ))
-
-    );
+  Container getCommonText(String? content,{bool isLimit = false}) {
+    return Container(
+        //margin: EdgeInsets.only(left: 50, right: 50),
+        padding: const EdgeInsets.only(top: 10, bottom: 10),
+        child: SizedBox(
+          width: isLimit? 30: 160,
+                child: Text(validateInput(content),
+                    //overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        //backgroundColor: Colors.red
+                    ))
+    ));
   }
 
 
@@ -495,6 +543,7 @@ class _AndroidLogPageState
 
 
   //测试
+  /*
   Widget _getBrandList() {
     double screenWidth  = MediaQuery.of(context).size.width;
     return Container(
@@ -550,6 +599,8 @@ class _AndroidLogPageState
     ];
     return  lists;
   }
-
+*/
 
 }
+
+

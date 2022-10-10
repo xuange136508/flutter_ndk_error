@@ -315,24 +315,24 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
       String? itemMark1 = itemMarkBean?.itemMark1;
       String? itemMark2 = itemMarkBean?.itemMark2;
 
-      dateRows.add(DataRow(
-        cells: [
-          DataCell(getCommonText((dateRows.length + 1).toString(), isLimit: true)),
-          DataCell(getCommonText(position)),
-          DataCell(getCommonText(itemType)),
-          DataCell(getCommonText(event)),
-          DataCell(getCommonText(itemId)),
-          DataCell(getCommonText(itemName)),
-          DataCell(getCommonText(itemMark1)),
-          DataCell(getCommonText(itemMark2)),
-          //DataCell(getCommonText('$itemMark')),
-        ],
-      ));
+      // dateRows.add(DataRow(
+      //   cells: [
+      //     DataCell(getCommonText((dateRows.length + 1).toString(), isLimit: true)),
+      //     DataCell(getCommonText(position)),
+      //     DataCell(getCommonText(itemType)),
+      //     DataCell(getCommonText(event)),
+      //     DataCell(getCommonText(itemId)),
+      //     DataCell(getCommonText(itemName)),
+      //     DataCell(getCommonText(itemMark1)),
+      //     DataCell(getCommonText(itemMark2)),
+      //     //DataCell(getCommonText('$itemMark')),
+      //   ],
+      // ));
 
       //测试
       tableRows.add(TableRow(
               children: [
-                getCommonText((dateRows.length + 1).toString(), isLimit: true),
+                getCommonText((tableRows.length + 1).toString(), isLimit: true),
                 getCommonText(position),
                 getCommonText(itemType),
                 getCommonText(event),
@@ -356,7 +356,8 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
   /// 清除上报日志
   /// */
   void clearReport(){
-    dateRows.clear();
+    //dateRows.clear();
+    tableRows.clear();
   }
 
 
@@ -370,6 +371,8 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
       printLog("内容：$contents");
       // 正则匹配
       RegExp reg = RegExp(r'(?<=ExposuerUtil:)(.*)');
+      // 匹配时间
+      //RegExp reg = RegExp(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3})');
       if (reg.hasMatch(contents)) {
         var matches = reg.allMatches(contents);
         //printLog("${matches.length}");
@@ -424,18 +427,22 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
 
   /// 设置输出文案格式
   /// */
-  SizedBox getCommonText(String? content,{bool isLimit = false}) {
-    return SizedBox(
-        width: isLimit? 30: 160,
-        child: Text(validateInput(content),
-            //overflow: TextOverflow.ellipsis,
-            softWrap: true,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              //backgroundColor: Colors.red
-            ))
-    );
+  Container getCommonText(String? content,{bool isLimit = false}) {
+    return Container(
+        //margin: EdgeInsets.only(left: 50, right: 50),
+        padding: const EdgeInsets.only(top: 10, bottom: 10),
+        child: SizedBox(
+            width: isLimit? 30: 160,
+            child: Text(validateInput(content),
+                //overflow: TextOverflow.ellipsis,
+                softWrap: true,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  //backgroundColor: Colors.red
+                ))
+        )
+      );
   }
   // Expanded getCommonText(String? content) {
   //   return Expanded(
