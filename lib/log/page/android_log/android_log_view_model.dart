@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -20,8 +21,8 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
 
   String deviceId;
 
-  bool isFilterPackage = false;
-  String filterContent = "";
+  bool isFilterPackage = true;
+  String filterContent = "ExposuerUtil";
 
   List<String> logList = [];
 
@@ -30,7 +31,6 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
 
   FlutterListViewController scrollController = FlutterListViewController();
 
-  TextEditingController filterController = TextEditingController();
   TextEditingController findController = TextEditingController();
 
   bool isCaseSensitive = false;
@@ -93,14 +93,11 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
       kill();
       listenerLog();
     });
-    SharedPreferences.getInstance().then((preferences) {
-      isFilterPackage = preferences.getBool(filterPackageKey) ?? false;
-      isCaseSensitive = preferences.getBool(caseSensitiveKey) ?? false;
-    });
+    // SharedPreferences.getInstance().then((preferences) {
+    //   isFilterPackage = preferences.getBool(filterPackageKey) ?? true;
+    //   isCaseSensitive = preferences.getBool(caseSensitiveKey) ?? false;
+    // });
 
-    filterController.addListener(() {
-      filter(filterController.text);
-    });
     findController.addListener(() {
       findIndex = -1;
       notifyListeners();
@@ -119,14 +116,18 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
 
 
 
-
+  /// 初始化
+  /// */
   void init() async {
     adbPath = await App().getAdbPath();
     await getInstalledApp(deviceId);
     pid = await getPid();
-    execAdb(["-s", deviceId, "logcat", "-c"]);
-    listenerLog();
+    // 先注释，避免多次监听造成日志错乱
+    //execAdb(["-s", deviceId, "logcat", "-c"]);
+    //listenerLog();
   }
+
+
 
   void selectPackageName(BuildContext context) async {
     var package = await showPackageSelect(context, deviceId);
@@ -150,7 +151,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     String level = filterLevelViewModel.selectValue?.value ?? "";
     // 设置日志等级
     var list = ["-s", deviceId, "logcat", "$level"];
-    if (isFilterPackage) {
+    if (isFilterPackage && pid.isNotEmpty) {
       // 过滤应用包名
       list.add("--pid=$pid");
     }
@@ -170,6 +171,10 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
 
           // 上报日志解析处理
           handleReportList(line);
+          // Future(() {
+          //   handleReportList(line);
+          // });
+          // Isolate.spawn(handleReportList, line);
 
           // 上报日志滚动到底部
           // logScrollController.jumpTo(
@@ -177,7 +182,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
           // );
 
           // 通知刷新列表
-           notifyListeners();
+          //  notifyListeners();
 
           // 滚动到底部
           // if (isShowLast) {
@@ -288,7 +293,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
 
   /// 上报日志解析处理
   /// */
-  void handleReportList(String curLog) {
+  handleReportList(String curLog) async {
     if (curLog?.isEmpty == true) {
       return;
     }
@@ -302,7 +307,14 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     // List<DataRow> dateRows = [];
     // for (int i = 0; i < logList.length; i++) {
     // 解析上报日志
-    ReportProperties? reportProperties = parseDevLog(curLog);
+    //ReportProperties? reportProperties = parseDevLog(curLog);
+    //ReportProperties? reportProperties = await compute(parseDevLog, curLog);
+    Future(() => parseDevLog(curLog)).then((reportProperties) =>
+        handleProperties(reportProperties)
+    );
+  }
+
+  void handleProperties(ReportProperties? reportProperties){
     if (reportProperties != null) {
       String? position = reportProperties?.properties?.first.position;
       String? itemType = reportProperties?.properties?.first.itemType;
@@ -315,60 +327,43 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
       String? itemMark1 = itemMarkBean?.itemMark1;
       String? itemMark2 = itemMarkBean?.itemMark2;
 
-      // dateRows.add(DataRow(
-      //   cells: [
-      //     DataCell(getCommonText((dateRows.length + 1).toString(), isLimit: true)),
-      //     DataCell(getCommonText(position)),
-      //     DataCell(getCommonText(itemType)),
-      //     DataCell(getCommonText(event)),
-      //     DataCell(getCommonText(itemId)),
-      //     DataCell(getCommonText(itemName)),
-      //     DataCell(getCommonText(itemMark1)),
-      //     DataCell(getCommonText(itemMark2)),
-      //     //DataCell(getCommonText('$itemMark')),
-      //   ],
-      // ));
-
-      //测试
       tableRows.add(TableRow(
-              children: [
-                getCommonText((tableRows.length + 1).toString(), isLimit: true),
-                getCommonText(position),
-                getCommonText(itemType),
-                getCommonText(event),
-                getCommonText(itemId),
-                getCommonText(itemName),
-                getCommonText(itemMark1),
-                getCommonText(itemMark2),
-                //getCommonText('$itemMark'),
-              ]
-          ));
+          children: [
+            getCommonText((tableRows.length + 1).toString(), isLimit: true),
+            getCommonText(position),
+            getCommonText(itemType),
+            getCommonText(event),
+            getCommonText(itemId),
+            getCommonText(itemName),
+            getCommonText(itemMark1),
+            getCommonText(itemMark2),
+            //getCommonText('$itemMark'),
+          ]
+      ));
       //const Divider(height: 1.0, indent: 60.0, color: Colors.grey)
 
       // 上报日志滚动到底部
       logScrollController.jumpTo(
         logScrollController.position.maxScrollExtent,
       );
+      notifyListeners();
     }
-    // }
   }
 
   /// 清除上报日志
   /// */
   void clearReport(){
-    //dateRows.clear();
     tableRows.clear();
   }
 
-
   /// 日志解析
   /// */
-  ReportProperties? parseDevLog(String? contents) {
+  Future<ReportProperties?> parseDevLog(String? contents) async {
     if(contents?.isEmpty == true || contents == null){
       return null;
     }
     try{
-      printLog("内容：$contents");
+      //printLog("内容：$contents");
       // 正则匹配
       RegExp reg = RegExp(r'(?<=ExposuerUtil:)(.*)');
       // 匹配时间
@@ -377,7 +372,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
         var matches = reg.allMatches(contents);
         //printLog("${matches.length}");
         for (int i = 0; i < matches.length; i++) {
-          printLog("${matches.elementAt(i).group(0)}");
+          //printLog("${matches.elementAt(i).group(0)}");
           // 解析上报数据
           String? jsonData = matches.elementAt(i).group(0);
           ReportProperties reportProperties = ReportProperties.fromJson(jsonDecode(jsonData!));
@@ -390,12 +385,12 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
           // printLog("打印itemMark：${itemMark.itemName}");
         }
       } else {
-        printLog("匹配失败");
+        //printLog("匹配失败");
       }
       return null;
     }
     on Exception{
-      printLog('解析异常');
+      //printLog('解析异常');
       return null;
     }
   }

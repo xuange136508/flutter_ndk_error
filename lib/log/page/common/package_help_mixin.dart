@@ -6,7 +6,8 @@ import 'app.dart';
 import 'base_view_model.dart';
 
 mixin PackageHelpMixin implements BaseViewModel {
-  String packageName = "";
+
+  String packageName = "cn.mama.pregnant";
 
   ListFilterController<ListFilterItem> packageNameController =
       ListFilterController();

@@ -43,37 +43,13 @@ class _AndroidLogPageState
         const SizedBox(height: 10),
         Row(
           children: [
-            const SizedBox(width: 16),
-            const TextView("筛选："),
-            Expanded(
-              child: Container(
-                height: 33,
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                // decoration: BoxDecoration(
-                //   border: Border.all(color: Colors.grey),
-                //   borderRadius: BorderRadius.circular(5),
-                // ),
-                child: TextField(
-                  controller: viewModel.filterController,
-                  decoration: const InputDecoration(
-                    contentPadding:
-                        EdgeInsets.symmetric(vertical: 0, horizontal: 8),
-                    hintText: "请输入需要筛选的内容",
-                    border: OutlineInputBorder(),
-                    hintStyle: TextStyle(fontSize: 14),
-                  ),
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 20),
             const TextView("级别："),
             Container(
               height: 33,
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(5),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: PopUpMenuButton(
                 viewModel: viewModel.filterLevelViewModel,
@@ -81,31 +57,28 @@ class _AndroidLogPageState
               ),
             ),
             const SizedBox(width: 12),
-            const TextView("应用："),
-            // 选择筛选的应用包名
-            packageNameView(context),
+
+            const TextView("事件类型："),
+            //事件类型过滤
+            filterEventType(),
+
             const SizedBox(width: 12),
-            // 是否筛选应用
-            Selector<AndroidLogViewModel, bool>(
-              selector: (context, viewModel) => viewModel.isFilterPackage,
-              builder: (context, isFilter, child) {
-                return Checkbox(
-                  value: isFilter,
-                  onChanged: (value) {
-                    viewModel.setFilterPackage(value ?? false);
-                  },
-                );
-              },
-            ),
-            const TextView("筛选应用"),
-            const SizedBox(width: 12),
-            OutlinedButton(
-              onPressed: () {
-                viewModel.clearLog();
-                //顺便清除上报日志
-                clearReport();
-              },
-              child: const TextView("清除"),
+
+            SizedBox(
+              height: 30,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  side: const BorderSide(width: 1, color: Colors.grey),
+                ),
+                onPressed: () {
+                  viewModel.tableRows.clear();
+                  viewModel.clearLog();
+                },
+                child: const TextView("清除"),
+              ),
             ),
             const SizedBox(width: 16),
           ],
@@ -115,10 +88,6 @@ class _AndroidLogPageState
         AdbSettingDialog(viewModel.adbPath),
         const SizedBox(height: 10),
 
-        //事件类型过滤
-        filterEventType(),
-
-        const SizedBox(height: 10),
         //表头
         _buildTableHead(),
         //上报点位筛选框
@@ -134,11 +103,8 @@ class _AndroidLogPageState
 
   /// 选择点位事件类型
   /// */
-  Row filterEventType() {
-    return Row(children: [
-      const SizedBox(width: 20),
-      const TextView("事件类型："),
-      Container(
+  Container filterEventType() {
+    return Container(
         height: 30,
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey),
@@ -148,8 +114,7 @@ class _AndroidLogPageState
           viewModel: viewModel.eventTypeViewModel,
           menuTip: "选择事件类型",
         ),
-      )
-    ]);
+      );
   }
 
 
@@ -322,13 +287,6 @@ class _AndroidLogPageState
 
 
 
-  /// 清除上报日志
-  /// */
-  void clearReport(){
-    viewModel.dateRows.clear();
-  }
-
-
 
   /// 设置输出文案格式
   /// */
@@ -483,46 +441,6 @@ class _AndroidLogPageState
   }
 
 
-  /// 包名修改组件
-  /// */
-  Widget packageNameView(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        viewModel.selectPackageName(context);
-      },
-      child: Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5),
-          border: Border.all(color: Colors.black.withOpacity(0.5)),
-        ),
-        height: 33,
-        child: Row(
-          children: [
-            const SizedBox(width: 10),
-            Selector<AndroidLogViewModel, String>(
-              selector: (context, viewModel) => viewModel.packageName,
-              builder: (context, packageName, child) {
-                return TextView(
-                  packageName.isEmpty ? "未选择筛选应用" : packageName,
-                  color: const Color(0xFF666666),
-                  fontSize: 12,
-                );
-              },
-            ),
-            const SizedBox(
-              width: 5,
-            ),
-            const Icon(
-              Icons.arrow_drop_down,
-              color: Color(0xFF666666),
-            ),
-            const SizedBox(width: 5),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   createViewModel() {

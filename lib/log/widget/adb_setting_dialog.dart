@@ -50,7 +50,7 @@ class _AdbSettingDialogState extends State<AdbSettingDialog> {
                         width: double.infinity,
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(3),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -91,9 +91,11 @@ class _AdbSettingDialogState extends State<AdbSettingDialog> {
                     SizedBox(
                       height: 30,
                       child: OutlinedButton(
-                        style: ButtonStyle(
-                          side: MaterialStateProperty.all(
-                              const BorderSide(color: Colors.grey)),
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          side: const BorderSide(width: 1, color: Colors.grey),
                         ),
                         onPressed: () {
                           controller.testAdb();
@@ -105,9 +107,11 @@ class _AdbSettingDialogState extends State<AdbSettingDialog> {
                     SizedBox(
                       height: 30,
                       child: OutlinedButton(
-                        style: ButtonStyle(
-                          side: MaterialStateProperty.all(
-                              const BorderSide(color: Colors.grey)),
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          side: const BorderSide(width: 1, color: Colors.grey),
                         ),
                         onPressed: () {
                           controller.save(context);
