@@ -40,30 +40,17 @@ class _AndroidLogPageState
   Widget contentView(BuildContext context) {
     return Column(
       children: [
-        const SizedBox(height: 10),
+        //adb设置
+        AdbSettingDialog(viewModel.adbPath),
+        const SizedBox(height: 5),
+
         Row(
           children: [
             const SizedBox(width: 20),
-            const TextView("级别："),
-            Container(
-              height: 33,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: PopUpMenuButton(
-                viewModel: viewModel.filterLevelViewModel,
-                menuTip: "选择筛选级别",
-              ),
-            ),
-            const SizedBox(width: 12),
-
             const TextView("事件类型："),
             //事件类型过滤
             filterEventType(),
-
             const SizedBox(width: 12),
-
             SizedBox(
               height: 30,
               child: OutlinedButton(
@@ -75,17 +62,15 @@ class _AndroidLogPageState
                 ),
                 onPressed: () {
                   viewModel.tableRows.clear();
+                  viewModel.totalLogList.clear();
                   viewModel.clearLog();
                 },
-                child: const TextView("清除"),
+                child: const TextView("清空日志",fontSize: 13),
               ),
             ),
             const SizedBox(width: 16),
           ],
         ),
-
-        //adb设置
-        AdbSettingDialog(viewModel.adbPath),
         const SizedBox(height: 10),
 
         //表头
@@ -170,7 +155,7 @@ class _AndroidLogPageState
               //   // }
               // }
 
-              if(viewModel.dateRows.length == 1000){
+              if(viewModel.totalLogList.length == 1000){
                 showToast("上报日志过多，建议清理!");
               }
               // 上报日志滚动到底部

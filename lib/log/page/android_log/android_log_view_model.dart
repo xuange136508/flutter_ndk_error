@@ -44,14 +44,14 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
   Process? _process;
 
   // 日志等级
-  List<FilterLevel> filterLevel = [
-    FilterLevel("Verbose", "*:V"),
-    FilterLevel("Debug", "*:D"),
-    FilterLevel("Info", "*:I"),
-    FilterLevel("Warn", "*:W"),
-    FilterLevel("Error", "*:E"),
-  ];
-  PopUpMenuButtonViewModel<FilterLevel> filterLevelViewModel = PopUpMenuButtonViewModel();
+  // List<FilterLevel> filterLevel = [
+  //   FilterLevel("Verbose", "*:V"),
+  //   FilterLevel("Debug", "*:D"),
+  //   FilterLevel("Info", "*:I"),
+  //   FilterLevel("Warn", "*:W"),
+  //   FilterLevel("Error", "*:E"),
+  // ];
+  // PopUpMenuButtonViewModel<FilterLevel> filterLevelViewModel = PopUpMenuButtonViewModel();
 
   // 事件类型
   List<FilterLevel> filterEventType = [
@@ -102,16 +102,19 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
       findIndex = -1;
       notifyListeners();
     });
-    filterLevelViewModel.list = filterLevel;
-    filterLevelViewModel.selectValue = filterLevel.first;
-    filterLevelViewModel.addListener(() {
-      kill();
-      listenerLog();
-    });
+    // filterLevelViewModel.list = filterLevel;
+    // filterLevelViewModel.selectValue = filterLevel.first;
+    // filterLevelViewModel.addListener(() {
+    //   kill();
+    //   listenerLog();
+    // });
 
     // 事件类型筛选设置
     eventTypeViewModel.list = filterEventType;
     eventTypeViewModel.selectValue = filterEventType.first;
+    eventTypeViewModel.addListener(() {
+      listenerEventType();
+    });
   }
 
 
@@ -148,7 +151,8 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
   /// 添加抓取adb日志监听方法
   /// */
   void listenerLog() {
-    String level = filterLevelViewModel.selectValue?.value ?? "";
+    //String level = filterLevelViewModel.selectValue?.value ?? "";
+    String level = "*:E";
     // 设置日志等级
     var list = ["-s", deviceId, "logcat", "$level"];
     if (isFilterPackage && pid.isNotEmpty) {
@@ -266,61 +270,23 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
   /// 筛选事件类型
   /// */
   void listenerEventType() {
-    String event = eventTypeViewModel.selectValue?.value ?? "";
+    List<ReportProperties> resultList;
+    String eventType = eventTypeViewModel.selectValue?.value ?? "";
     // 过滤当前日志类型，通知页面刷新
-
-
-  }
-
-
-  void copyLog(String log) {
-    Clipboard.setData(ClipboardData(text: log));
-  }
-
-  void clearLog() {
-    logList.clear();
-    findIndex = -1;
-    notifyListeners();
-  }
-
-  List<TableRow> tableRows = [];
-
-  // 表格数据集合
-  List<DataRow> dateRows = [];
-
-  //过滤重复日志
-  String previousLog = "";
-
-  /// 上报日志解析处理
-  /// */
-  handleReportList(String curLog) async {
-    if (curLog?.isEmpty == true) {
-      return;
+    if(eventType.isEmpty){
+      resultList = totalLogList;
+    }else{
+      resultList = totalLogList
+          .where((element) =>(element.event == eventType))
+          .toList();
     }
-    if(previousLog != "" && curLog.startsWith(previousLog)){
-      //curLog.replaceFirst(previousLog, "");
-      //dateRows.removeLast();
-      return;
-    }
-    previousLog = curLog;
-    // showToast("打印长度:${logList.length}");
-    // List<DataRow> dateRows = [];
-    // for (int i = 0; i < logList.length; i++) {
-    // 解析上报日志
-    //ReportProperties? reportProperties = parseDevLog(curLog);
-    //ReportProperties? reportProperties = await compute(parseDevLog, curLog);
-    Future(() => parseDevLog(curLog)).then((reportProperties) =>
-        handleProperties(reportProperties)
-    );
-  }
-
-  void handleProperties(ReportProperties? reportProperties){
-    if (reportProperties != null) {
-      String? position = reportProperties?.properties?.first.position;
-      String? itemType = reportProperties?.properties?.first.itemType;
-      String? event = reportProperties?.event;
-      String? itemId = reportProperties?.properties?.first.itemid;
-      String? itemMark = reportProperties?.properties?.first.itemMark;
+    tableRows.clear();
+    for (var result in resultList) {
+      String? position = result?.properties?.first.position;
+      String? itemType = result?.properties?.first.itemType;
+      String? event = result?.event;
+      String? itemId = result?.properties?.first.itemid;
+      String? itemMark = result?.properties?.first.itemMark;
       //包含itemMark需二次解析
       ItemMark? itemMarkBean = parseItemMark(itemMark);
       String? itemName = itemMarkBean?.itemName;
@@ -337,24 +303,98 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
             getCommonText(itemName),
             getCommonText(itemMark1),
             getCommonText(itemMark2),
-            //getCommonText('$itemMark'),
           ]
       ));
-      //const Divider(height: 1.0, indent: 60.0, color: Colors.grey)
+    }
+    notifyListeners();
+  }
 
-      // 上报日志滚动到底部
-      logScrollController.jumpTo(
-        logScrollController.position.maxScrollExtent,
-      );
-      notifyListeners();
+
+  void copyLog(String log) {
+    Clipboard.setData(ClipboardData(text: log));
+  }
+
+  void clearLog() {
+    logList.clear();
+    findIndex = -1;
+    notifyListeners();
+  }
+
+  //日志数据集合
+  List<ReportProperties> totalLogList = [];
+
+  //表格数据集合
+  List<TableRow> tableRows = [];
+
+  //过滤重复日志
+  String previousLog = "";
+
+  /// 上报日志解析处理
+  /// */
+  handleReportList(String curLog) async {
+    if (curLog?.isEmpty == true) {
+      return;
+    }
+    // if(previousLog != "" && curLog.startsWith(previousLog)){
+      //curLog.replaceFirst(previousLog, "");
+      //dateRows.removeLast();
+    //   return;
+    // }
+    // previousLog = curLog;
+    // showToast("打印长度:${logList.length}");
+    // List<DataRow> dateRows = [];
+    // for (int i = 0; i < logList.length; i++) {
+    // 解析上报日志
+    //ReportProperties? reportProperties = parseDevLog(curLog);
+    //ReportProperties? reportProperties = await compute(parseDevLog, curLog);
+    Future(() => parseDevLog(curLog)).then((reportProperties) =>
+        handleProperties(reportProperties)
+    );
+  }
+
+
+
+  void handleProperties(ReportProperties? reportProperties){
+    if (reportProperties != null) {
+      //添加数据集合
+      totalLogList.add(reportProperties);
+
+      String? position = reportProperties?.properties?.first.position;
+      String? itemType = reportProperties?.properties?.first.itemType;
+      String? event = reportProperties?.event;
+      String? itemId = reportProperties?.properties?.first.itemid;
+      String? itemMark = reportProperties?.properties?.first.itemMark;
+      //包含itemMark需二次解析
+      ItemMark? itemMarkBean = parseItemMark(itemMark);
+      String? itemName = itemMarkBean?.itemName;
+      String? itemMark1 = itemMarkBean?.itemMark1;
+      String? itemMark2 = itemMarkBean?.itemMark2;
+
+      //过滤数据集合
+      String eventType = eventTypeViewModel.selectValue?.value ?? "";
+      if(eventType == "" || eventType == event){
+        tableRows.add(TableRow(
+            children: [
+              getCommonText((tableRows.length + 1).toString(), isLimit: true),
+              getCommonText(position),
+              getCommonText(itemType),
+              getCommonText(event),
+              getCommonText(itemId),
+              getCommonText(itemName),
+              getCommonText(itemMark1),
+              getCommonText(itemMark2),
+              //getCommonText('$itemMark'),
+            ]
+        ));
+        // 上报日志滚动到底部
+        logScrollController.jumpTo(
+          logScrollController.position.maxScrollExtent,
+        );
+        notifyListeners();
+      }
     }
   }
 
-  /// 清除上报日志
-  /// */
-  void clearReport(){
-    tableRows.clear();
-  }
 
   /// 日志解析
   /// */

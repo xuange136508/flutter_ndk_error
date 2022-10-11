@@ -40,7 +40,7 @@ class _AdbSettingDialogState extends State<AdbSettingDialog> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     const TextView(
-                      "Adb：",
+                      "Adb设置：",
                       color: Colors.black,
                     ),
                     const SizedBox(width: 5),
@@ -100,7 +100,7 @@ class _AdbSettingDialogState extends State<AdbSettingDialog> {
                         onPressed: () {
                           controller.testAdb();
                         },
-                        child: const TextView("测试"),
+                        child: const TextView("测试",fontSize: 13),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -116,10 +116,10 @@ class _AdbSettingDialogState extends State<AdbSettingDialog> {
                         onPressed: () {
                           controller.save(context);
                         },
-                        child: const TextView("保存"),
+                        child: const TextView("保存",fontSize: 13),
                       ),
                     ),
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.3)
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.4)
                   ],
                 ),
                 // adb提示内容

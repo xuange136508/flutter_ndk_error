@@ -41,7 +41,9 @@ class _PopUpMenuButtonState<T extends PopUpMenuItem>
             for (var element in viewModel.list) {
               PopupMenuItem<T> item = PopupMenuItem(
                 value: element,
-                child: Text(element.menuItemTitle),
+                child: Text(element.menuItemTitle,
+                        style: const TextStyle(fontSize: 13)
+                ),
               );
               items.add(item);
             }
@@ -68,6 +70,7 @@ class _PopUpMenuButtonState<T extends PopUpMenuItem>
               overflow: TextOverflow.fade,
               style: TextStyle(
                 color: widget.color ?? const Color(0xFF666666),
+                fontSize: 13
               ),
             ),
           ),
