@@ -21,6 +21,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
 
   String deviceId;
 
+  bool isAutoScroll = true;
   bool isFilterPackage = true;
   String filterContent = "ExposuerUtil";
 
@@ -387,9 +388,11 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
             ]
         ));
         // 上报日志滚动到底部
-        logScrollController.jumpTo(
-          logScrollController.position.maxScrollExtent,
-        );
+        if(isAutoScroll){
+          logScrollController.jumpTo(
+            logScrollController.position.maxScrollExtent,
+          );
+        }
         notifyListeners();
       }
     }
@@ -513,6 +516,13 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     } else {
       return "";
     }
+  }
+
+  /// 设置滚动底部
+  /// */
+  Future<void> setScrollBottom(bool value) async {
+    isAutoScroll = value;
+    notifyListeners();
   }
 
 

@@ -69,6 +69,21 @@ class _AndroidLogPageState
               ),
             ),
             const SizedBox(width: 16),
+
+            const SizedBox(width: 12),
+            Selector<AndroidLogViewModel, bool>(
+              selector: (context, viewModel) => viewModel.isAutoScroll,
+              builder: (context, isAutoScroll, child) {
+                return Checkbox(
+                  value: isAutoScroll,
+                  onChanged: (value) {
+                    viewModel.setScrollBottom(value ?? false);
+                  },
+                );
+              },
+            ),
+            const TextView("自动滚动"),
+
           ],
         ),
         const SizedBox(height: 10),
