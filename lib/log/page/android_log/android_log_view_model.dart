@@ -360,40 +360,44 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
       //添加数据集合
       totalLogList.add(reportProperties);
 
-      String? position = reportProperties?.properties?.first.position;
-      String? itemType = reportProperties?.properties?.first.itemType;
+      //处理多条属性的情况
       String? event = reportProperties?.event;
-      String? itemId = reportProperties?.properties?.first.itemid;
-      String? itemMark = reportProperties?.properties?.first.itemMark;
-      //包含itemMark需二次解析
-      ItemMark? itemMarkBean = parseItemMark(itemMark);
-      String? itemName = itemMarkBean?.itemName;
-      String? itemMark1 = itemMarkBean?.itemMark1;
-      String? itemMark2 = itemMarkBean?.itemMark2;
+      for(Properties properties in reportProperties?.properties?? []){
+        String? position = properties?.position;
+        String? itemType = properties.itemType;
+        String? itemId = properties.itemid;
+        String? itemMark = properties.itemMark;
+        //包含itemMark需二次解析
+        ItemMark? itemMarkBean = parseItemMark(itemMark);
+        String? itemName = itemMarkBean?.itemName;
+        String? itemMark1 = itemMarkBean?.itemMark1;
+        String? itemMark2 = itemMarkBean?.itemMark2;
 
-      //过滤数据集合
-      String eventType = eventTypeViewModel.selectValue?.value ?? "";
-      if(eventType == "" || eventType == event){
-        tableRows.add(TableRow(
-            children: [
-              getCommonText((tableRows.length + 1).toString(), isLimit: true),
-              getCommonText(position),
-              getCommonText(itemType),
-              getCommonText(event),
-              getCommonText(itemId),
-              getCommonText(itemName),
-              getCommonText(itemMark1),
-              getCommonText(itemMark2),
-              //getCommonText('$itemMark'),
-            ]
-        ));
-        // 上报日志滚动到底部
-        if(isAutoScroll){
-          logScrollController.jumpTo(
-            logScrollController.position.maxScrollExtent,
-          );
+        //过滤数据集合
+        String eventType = eventTypeViewModel.selectValue?.value ?? "";
+        if(eventType == "" || eventType == event){
+          tableRows.add(TableRow(
+              children: [
+                getCommonText((tableRows.length + 1).toString(), isLimit: true),
+                getCommonText(position),
+                getCommonText(itemType),
+                getCommonText(event),
+                getCommonText(itemId),
+                getCommonText(itemName),
+                getCommonText(itemMark1),
+                getCommonText(itemMark2),
+                //getCommonText('$itemMark'),
+              ]
+          ));
+          // 上报日志滚动到底部
+          if(isAutoScroll){
+            logScrollController.jumpTo(
+              logScrollController.position.maxScrollExtent,
+            );
+          }
+          notifyListeners();
         }
-        notifyListeners();
+
       }
     }
   }

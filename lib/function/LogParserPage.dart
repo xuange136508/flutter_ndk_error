@@ -110,11 +110,17 @@ class LogParserPageState extends State<LogParserPage> {
   /// */
   void jsonDataParser(String? jsonData) {
     ReportProperties reportProperties = ReportProperties.fromJson(jsonDecode(jsonData!));
-    printLog("打印属性：${reportProperties.properties?.first.itemMark}");
+    //printLog("打印属性：${reportProperties.properties?.first.itemMark}");
+    //打印多行
+    for(Properties properties in reportProperties?.properties?? []){
+      String? mark = properties.itemMark;
+      printLog("打印mark：$mark");
+    }
+
     //包含itemMark需二次解析
-    String? mark = reportProperties.properties?.first.itemMark;
-    ItemMark itemMark = ItemMark.fromJson(jsonDecode((mark?.isEmpty == true) ? "" : mark!));
-    printLog("打印itemMark：${itemMark.itemName}");
+    // String? mark = reportProperties.properties?.first.itemMark;
+    // ItemMark itemMark = ItemMark.fromJson(jsonDecode((mark?.isEmpty == true) ? "" : mark!));
+    // printLog("打印itemMark：${itemMark.itemName}");
   }
 
 }
