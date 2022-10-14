@@ -283,29 +283,31 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     }
     tableRows.clear();
     for (var result in resultList) {
-      String? position = result?.properties?.first.position;
-      String? itemType = result?.properties?.first.itemType;
       String? event = result?.event;
-      String? itemId = result?.properties?.first.itemid;
-      String? itemMark = result?.properties?.first.itemMark;
-      //包含itemMark需二次解析
-      ItemMark? itemMarkBean = parseItemMark(itemMark);
-      String? itemName = itemMarkBean?.itemName;
-      String? itemMark1 = itemMarkBean?.itemMark1;
-      String? itemMark2 = itemMarkBean?.itemMark2;
-
-      tableRows.add(TableRow(
-          children: [
-            getCommonText((tableRows.length + 1).toString(), isLimit: true),
-            getCommonText(position),
-            getCommonText(itemType),
-            getCommonText(event),
-            getCommonText(itemId),
-            getCommonText(itemName),
-            getCommonText(itemMark1),
-            getCommonText(itemMark2),
-          ]
-      ));
+      //处理多日志合并的情况
+      for(Properties properties in result?.properties?? []){
+        String? position = properties.position;
+        String? itemType = properties.itemType;
+        String? itemId = properties.itemid;
+        String? itemMark = properties.itemMark;
+        //包含itemMark需二次解析
+        ItemMark? itemMarkBean = parseItemMark(itemMark);
+        String? itemName = itemMarkBean?.itemName;
+        String? itemMark1 = itemMarkBean?.itemMark1;
+        String? itemMark2 = itemMarkBean?.itemMark2;
+        tableRows.add(TableRow(
+            children: [
+              getCommonText((tableRows.length + 1).toString(), isLimit: true),
+              getCommonText(position),
+              getCommonText(itemType),
+              getCommonText(event),
+              getCommonText(itemId),
+              getCommonText(itemName),
+              getCommonText(itemMark1),
+              getCommonText(itemMark2),
+            ]
+        ));
+      }
     }
     notifyListeners();
   }
