@@ -25,6 +25,7 @@ List<Color> colors = [
 
 /// 打包命令：
 /// flutter build windows --no-sound-null-safety
+/// MacOS Adb Path :/Users/klay/Documents/AsSDK/platform-tools/adb
 /// */
 void main() {
   runApp(const MyApp());
