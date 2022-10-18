@@ -47,10 +47,10 @@ class MainViewModel extends BaseViewModel {
       App().setAdbPath(adbPath);
       return;
     }
-    adbPath = await downloadAdb();
-    if (adbPath.isNotEmpty) {
-      App().setAdbPath(adbPath);
-    }
+    // adbPath = await downloadAdb();
+    // if (adbPath.isNotEmpty) {
+    //   App().setAdbPath(adbPath);
+    // }
   }
 
   /// 下载adb文件

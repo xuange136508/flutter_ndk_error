@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:oktoast/oktoast.dart';
 import 'package:process_run/shell_run.dart';
 
 import '../../widget/confirm_dialog.dart';
@@ -62,10 +63,11 @@ class BaseViewModel extends ChangeNotifier {
   Future<ProcessResult?> execAdb(List<String> arguments,
       {void Function(Process process)? onProcess}) async {
     if (adbPath.isEmpty) {
-      showResultDialog(
-        title: "ADB没有找到",
-        content: "请配置ADB环境变量",
-      );
+      showToast("请配置ADB环境变量!");
+      // showResultDialog(
+      //   title: "ADB没有找到",
+      //   content: "请配置ADB环境变量",
+      // );
       return null;
     }
     return await exec(adbPath, arguments, onProcess: onProcess);
