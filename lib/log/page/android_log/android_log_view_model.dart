@@ -80,12 +80,13 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     App().eventBus.on<DeviceIdEvent>().listen((event) async {
       logList.clear();
       deviceId = event.deviceId;
-      kill();
+
       if (deviceId.isEmpty) {
         resetPackage();
         return;
       }
       await getInstalledApp(deviceId);
+      kill();
       listenerLog();
     });
     App().eventBus.on<AdbPathEvent>().listen((event) {
@@ -155,7 +156,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     //String level = filterLevelViewModel.selectValue?.value ?? "";
     String level = "*:E";
     // 设置日志等级
-    var list = ["-s", deviceId, "logcat", "$level"];
+    var list = ["-s", deviceId, "logcat", level];
     if (isFilterPackage && pid.isNotEmpty) {
       // 过滤应用包名
       list.add("--pid=$pid");
@@ -399,7 +400,6 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
           }
           notifyListeners();
         }
-
       }
     }
   }

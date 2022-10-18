@@ -23,7 +23,9 @@ List<Color> colors = [
   Colors.deepPurpleAccent,
 ];
 
-
+/// 打包命令：
+/// flutter build windows --no-sound-null-safety
+/// */
 void main() {
   runApp(const MyApp());
 }
