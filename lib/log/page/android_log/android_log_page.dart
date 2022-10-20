@@ -70,6 +70,24 @@ class _AndroidLogPageState
             ),
             const SizedBox(width: 16),
 
+            SizedBox(
+              height: 30,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  side: const BorderSide(width: 1, color: Colors.grey),
+                ),
+                onPressed: () {
+                  // 重新走adb捕获流程
+                  viewModel.resetOneKey();
+                },
+                child: const TextView("一键重置",fontSize: 13),
+              ),
+            ),
+            const SizedBox(width: 16),
+
             const SizedBox(width: 12),
             Selector<AndroidLogViewModel, bool>(
               selector: (context, viewModel) => viewModel.isAutoScroll,

@@ -318,11 +318,36 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     Clipboard.setData(ClipboardData(text: log));
   }
 
+
+  /// 清除日志
+  /// */
   void clearLog() {
     logList.clear();
     findIndex = -1;
     notifyListeners();
   }
+
+
+  /// 一键重置
+  /// */
+  void resetOneKey(){
+    // 清除本地日志
+    tableRows.clear();
+    totalLogList.clear();
+    clearLog();
+
+    // 清空日志缓冲区
+    kill();
+    execAdb(["-s", deviceId, "logcat", "-c"]);
+    // 刷新日志
+    kill();
+    listenerLog();
+
+    // Future.delayed(const Duration(milliseconds: 500), () {
+    // });
+  }
+
+
 
   //日志数据集合
   List<ReportProperties> totalLogList = [];
