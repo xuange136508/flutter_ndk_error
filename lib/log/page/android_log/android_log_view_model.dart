@@ -127,6 +127,10 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     adbPath = await App().getAdbPath();
     await getInstalledApp(deviceId);
     pid = await getPid();
+
+    //设置缓存区为最大
+    execAdb(["-s", deviceId, "logcat", "-G", "256M"]);
+
     // 先注释，避免多次监听造成日志错乱
     //execAdb(["-s", deviceId, "logcat", "-c"]);
     //listenerLog();
@@ -325,6 +329,9 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     logList.clear();
     findIndex = -1;
     notifyListeners();
+
+    // 清空日志缓冲区
+    execAdb(["-s", deviceId, "logcat", "-c"]);
   }
 
 
