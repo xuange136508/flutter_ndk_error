@@ -15,6 +15,9 @@ import '../common/app.dart';
 import '../common/package_help_mixin.dart';
 
 class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
+
+  static const String blockStart = " BlockStart_";
+  static const String blockEnd = " BlockEnd_";
   static const String colorLogKey = 'colorLog';
   static const String filterPackageKey = 'filterPackage';
   static const String caseSensitiveKey = 'caseSensitive';
@@ -128,6 +131,8 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     await getInstalledApp(deviceId);
     pid = await getPid();
 
+    // 清空日志缓冲区
+    execAdb(["-s", deviceId, "logcat", "-c"]);
     //设置缓存区为最大
     execAdb(["-s", deviceId, "logcat", "-G", "256M"]);
 
@@ -344,17 +349,18 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     clearLog();
 
     // 清空日志缓冲区
-    kill();
     execAdb(["-s", deviceId, "logcat", "-c"]);
-    // 刷新日志
-    kill();
-    listenerLog();
 
-    // Future.delayed(const Duration(milliseconds: 500), () {
-    // });
+    // 刷新日志
+    Future.delayed(const Duration(milliseconds: 500), () {
+      kill();
+      listenerLog();
+    });
   }
 
 
+  //组合日志缓存
+  List<String> combineLog = [];
 
   //日志数据集合
   List<ReportProperties> totalLogList = [];
@@ -437,6 +443,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
   }
 
 
+
   /// 日志解析
   /// */
   Future<ReportProperties?> parseDevLog(String? contents) async {
@@ -451,19 +458,22 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
       //RegExp reg = RegExp(r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3})');
       if (reg.hasMatch(contents)) {
         var matches = reg.allMatches(contents);
-        //printLog("${matches.length}");
         for (int i = 0; i < matches.length; i++) {
-          //printLog("${matches.elementAt(i).group(0)}");
           // 解析上报数据
-          String? jsonData = matches.elementAt(i).group(0);
+          String jsonData = matches.elementAt(i).group(0) ?? "";
+          // 组合分段日志
+          if(jsonData.startsWith(blockStart)){
+              combineLog.add(jsonData.substring(blockStart.length, jsonData.length));
+              continue;
+
+          } else if (jsonData.startsWith(blockEnd)){
+              //读到结束标签，组合日志
+              combineLog.add(jsonData.substring(blockEnd.length, jsonData.length));
+              jsonData = combineLogGroup();
+              combineLog.clear();
+          }
           ReportProperties reportProperties = ReportProperties.fromJson(jsonDecode(jsonData!));
           return reportProperties;
-          // printLog("打印属性：${reportProperties.properties?.first.itemMark}");
-          // return reportProperties.properties?.first.position;
-          //包含itemMark需二次解析
-          // String? mark = reportProperties.properties?.first.itemMark;
-          // ItemMark itemMark = ItemMark.fromJson(jsonDecode((mark?.isEmpty == true) ? "" : mark!));
-          // printLog("打印itemMark：${itemMark.itemName}");
         }
       } else {
         //printLog("匹配失败");
@@ -471,7 +481,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
       return null;
     }
     on Exception{
-      //printLog('解析异常');
+      printLog('解析异常');
       return null;
     }
   }
@@ -563,6 +573,16 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     notifyListeners();
   }
 
+
+  /// 组合日志内容
+  /// */
+  String combineLogGroup() {
+    String combineValue = "";
+    for (var log in combineLog) {
+        combineValue += log;
+    }
+    return combineValue;
+  }
 
 }
 
