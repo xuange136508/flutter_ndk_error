@@ -526,7 +526,9 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
   Container getCommonText(String? content,{bool isLimit = false}) {
     // 当前位置标识
     var curIndex = (tableRows.length);
+    final globalkey = curIndex;
     return Container(
+        key: const GlobalObjectKey(globalkey),
         padding: const EdgeInsets.only(top: 10, bottom: 10),
         child: SizedBox(
             width: isLimit? 30: 160,
@@ -654,8 +656,9 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
       findIndex,
     );
     if (findIndex >= 0 && findIndex < resultList.length) {
-      logScrollController.sliverController
-          .jumpToIndex(findIndex, offsetBasedOnBottom: true);
+      // logScrollController.sliverController.jumpToIndex(findIndex, offsetBasedOnBottom: true);
+      // logScrollController.jumpTo(logScrollController.position.maxScrollExtent);
+      Scrollable.ensureVisible(_key[value].currentContext);
     }
     listenerEventType();
     //notifyListeners();
