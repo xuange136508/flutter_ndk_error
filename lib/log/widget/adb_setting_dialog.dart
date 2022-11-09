@@ -39,11 +39,6 @@ class _AdbSettingDialogState extends State<AdbSettingDialog> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    const TextView(
-                      "Adb设置：",
-                      color: Colors.black,
-                    ),
-                    const SizedBox(width: 5),
                     Expanded(
                       child: Container(
                         height: 32,

@@ -47,6 +47,60 @@ class _AndroidLogPageState
         Row(
           children: [
             const SizedBox(width: 20),
+            Container(
+                width: 250,
+                height: 35,
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: SizedBox(
+                  child: TextField(
+                    controller: viewModel.findController,
+                    decoration: const InputDecoration(
+                      isCollapsed: true,
+                      hintText: "请输入搜索内容",
+                      border: OutlineInputBorder(borderSide: BorderSide.none),
+                    ),
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                )),
+            const SizedBox(width: 10),
+            SizedBox(
+              height: 30,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  side: const BorderSide(width: 1, color: Colors.grey),
+                ),
+                onPressed: () {
+                  viewModel.findPrevious();
+                },
+                child: const TextView("上一个",fontSize: 13),
+              ),
+            ),
+            const SizedBox(width: 12),
+            SizedBox(
+              height: 30,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  side: const BorderSide(width: 1, color: Colors.grey),
+                ),
+                onPressed: () {
+                  viewModel.findNext();
+                },
+                child: const TextView("下一个",fontSize: 13),
+              ),
+            ),
+
+            const SizedBox(width: 20),
             const TextView("事件类型："),
             //事件类型过滤
             filterEventType(),
@@ -68,7 +122,7 @@ class _AndroidLogPageState
                 child: const TextView("清空日志",fontSize: 13),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
 
             SizedBox(
               height: 30,
@@ -86,9 +140,8 @@ class _AndroidLogPageState
                 child: const TextView("一键重置",fontSize: 13),
               ),
             ),
-            const SizedBox(width: 16),
 
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Selector<AndroidLogViewModel, bool>(
               selector: (context, viewModel) => viewModel.isAutoScroll,
               builder: (context, isAutoScroll, child) {
@@ -476,66 +529,6 @@ class _AndroidLogPageState
     viewModel.logScrollController.dispose();
   }
 
-
-
-  //测试
-  /*
-  Widget _getBrandList() {
-    double screenWidth  = MediaQuery.of(context).size.width;
-    return Container(
-        margin: const EdgeInsets.fromLTRB(6, 60, 6, 14),
-        padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-        ),
-        child: Table(
-          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-          columnWidths: const {
-            0: FlexColumnWidth(1.5),
-            1: FlexColumnWidth(4),
-            2: FlexColumnWidth(2.5),
-          },
-          children: [
-            const TableRow(
-                children: [
-                  Text('排名', style: TextStyle(color: Color(0xFF828CA0), fontSize: 12,)),
-                  Text('顾问名', style: TextStyle(color: Color(0xFF828CA0), fontSize: 12,),),
-                  Text('售卖量', style: TextStyle(color: Color(0xFF828CA0), fontSize: 12,),),
-                ]
-            ),
-            TableRow(
-              children: _getBrandItemCell( "么天麟", "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"),
-            ),
-            TableRow(
-              children: _getBrandItemCell("么天麟", "8527"),
-            ),
-            TableRow(
-              children: _getBrandItemCell( "么天麟", "8527"),
-            ),
-          ],
-        )
-    );
-  }
-
-  List<Widget> _getBrandItemCell(String name, String num) {
-    List<Widget> lists = [
-      Text(num, style: const TextStyle(color: Color(0xFF111E36), fontSize: 16, fontWeight: FontWeight.w500)),
-      Container(
-        height: 50,
-        child: Row(
-          children: <Widget>[
-            Text(name, style: const TextStyle(color: Color(0xFF111E36), fontSize: 14)),
-            SizedBox(width: 10,),
-            Text(name, style: const TextStyle(color: Color(0xFF111E36), fontSize: 14))
-          ],
-        ),
-      ),
-      Text(num, style: const TextStyle(color: Color(0xFF111E36), fontSize: 16, fontWeight: FontWeight.w500))
-    ];
-    return  lists;
-  }
-*/
 
 }
 

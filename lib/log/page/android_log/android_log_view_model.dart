@@ -1,13 +1,19 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_list_view/flutter_list_view.dart';
+import 'package:oktoast/oktoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:substring_highlight/substring_highlight.dart';
+
 import '../../../ItemMark.dart';
+import '../../../ReportData.dart';
 import '../../../ReportProperties.dart';
 import '../../page/common/base_view_model.dart';
 import '../../widget/pop_up_menu_button.dart';
@@ -31,7 +37,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
   List<String> logList = [];
 
   // 上报日志滚动控制器
-  ScrollController logScrollController = ScrollController();
+  FlutterListViewController logScrollController = FlutterListViewController();
 
   FlutterListViewController scrollController = FlutterListViewController();
 
@@ -85,18 +91,18 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
       deviceId = event.deviceId;
 
       if (deviceId.isEmpty) {
-        resetPackage();
-        return;
+          resetPackage();
+          return;
       }
       await getInstalledApp(deviceId);
       kill();
       listenerLog();
     });
     App().eventBus.on<AdbPathEvent>().listen((event) {
-      logList.clear();
-      adbPath = event.path;
-      kill();
-      listenerLog();
+        logList.clear();
+        adbPath = event.path;
+        kill();
+        listenerLog();
     });
     // SharedPreferences.getInstance().then((preferences) {
     //   isFilterPackage = preferences.getBool(filterPackageKey) ?? true;
@@ -104,8 +110,9 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     // });
 
     findController.addListener(() {
-      findIndex = -1;
-      notifyListeners();
+        findIndex = -1;
+        listenerEventType();
+        //notifyListeners();
     });
     // filterLevelViewModel.list = filterLevel;
     // filterLevelViewModel.selectValue = filterLevel.first;
@@ -118,7 +125,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     eventTypeViewModel.list = filterEventType;
     eventTypeViewModel.selectValue = filterEventType.first;
     eventTypeViewModel.addListener(() {
-      listenerEventType();
+        listenerEventType();
     });
   }
 
@@ -166,10 +173,12 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     String level = "*:E";
     // 设置日志等级
     var list = ["-s", deviceId, "logcat", level];
+    // 某些机型设置pid会出不来日志，vivo nex
+    /*
     if (isFilterPackage && pid.isNotEmpty) {
       // 过滤应用包名
       list.add("--pid=$pid");
-    }
+    }*/
     // 执行adb命令抓取日志
     execAdb(list, onProcess: (process) {
       _process = process;
@@ -281,7 +290,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
   /// 筛选事件类型
   /// */
   void listenerEventType() {
-    List<ReportProperties> resultList;
+    List<ReportData> resultList;
     String eventType = eventTypeViewModel.selectValue?.value ?? "";
     // 过滤当前日志类型，通知页面刷新
     if(eventType.isEmpty){
@@ -295,16 +304,16 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     for (var result in resultList) {
       String? event = result?.event;
       //处理多日志合并的情况
-      for(Properties properties in result?.properties?? []){
-        String? position = properties.position;
-        String? itemType = properties.itemType;
-        String? itemId = properties.itemid;
-        String? itemMark = properties.itemMark;
+      // for(Properties properties in result?.properties?? []){
+        String? position = result.position;
+        String? itemType = result.itemType;
+        String? itemId = result.itemId;
+        //String? itemMark = result.itemMark;
         //包含itemMark需二次解析
-        ItemMark? itemMarkBean = parseItemMark(itemMark);
-        String? itemName = itemMarkBean?.itemName;
-        String? itemMark1 = itemMarkBean?.itemMark1;
-        String? itemMark2 = itemMarkBean?.itemMark2;
+        //ItemMark? itemMarkBean = parseItemMark(itemMark);
+        String? itemName = result?.itemName;
+        String? itemMark1 = result?.itemMark1;
+        String? itemMark2 = result?.itemMark2;
         tableRows.add(TableRow(
             children: [
               getCommonText((tableRows.length + 1).toString(), isLimit: true),
@@ -317,12 +326,14 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
               getCommonText(itemMark2),
             ]
         ));
-      }
+      // }
     }
     notifyListeners();
   }
 
 
+  /// 复制到剪贴板
+  /// */
   void copyLog(String log) {
     Clipboard.setData(ClipboardData(text: log));
   }
@@ -363,7 +374,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
   List<String> combineLog = [];
 
   //日志数据集合
-  List<ReportProperties> totalLogList = [];
+  List<ReportData> totalLogList = [];
 
   //表格数据集合
   List<TableRow> tableRows = [];
@@ -399,8 +410,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
   void handleProperties(ReportProperties? reportProperties){
     if (reportProperties != null) {
       //添加数据集合
-      totalLogList.add(reportProperties);
-
+      //totalLogList.add(reportProperties);
       //处理多条属性的情况
       String? event = reportProperties?.event;
       for(Properties properties in reportProperties?.properties?? []){
@@ -413,7 +423,8 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
         String? itemName = itemMarkBean?.itemName;
         String? itemMark1 = itemMarkBean?.itemMark1;
         String? itemMark2 = itemMarkBean?.itemMark2;
-
+        //添加数据集合
+        totalLogList.add(ReportData(event, position, itemType, itemId, itemName, itemMark1, itemMark2));
         //过滤数据集合
         String eventType = eventTypeViewModel.selectValue?.value ?? "";
         if(eventType == "" || eventType == event){
@@ -427,7 +438,6 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
                 getCommonText(itemName),
                 getCommonText(itemMark1),
                 getCommonText(itemMark2),
-                //getCommonText('$itemMark'),
               ]
           ));
           // 上报日志滚动到底部
@@ -514,19 +524,39 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
   /// 设置输出文案格式
   /// */
   Container getCommonText(String? content,{bool isLimit = false}) {
+    // 当前位置标识
+    var curIndex = (tableRows.length);
     return Container(
-        //margin: EdgeInsets.only(left: 50, right: 50),
         padding: const EdgeInsets.only(top: 10, bottom: 10),
         child: SizedBox(
             width: isLimit? 30: 160,
-            child: Text(validateInput(content),
-                //overflow: TextOverflow.ellipsis,
-                softWrap: true,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 14,
-                  //backgroundColor: Colors.red
-                ))
+            child: Listener(
+                onPointerDown: (event) {
+                    if (event.kind == PointerDeviceKind.mouse &&
+                        event.buttons == kSecondaryMouseButton) {
+                        showToast("已复制到您剪切板!");
+                        copyLog(validateInput(content));
+                    }
+                },
+                // 高亮显示组件
+                child: SubstringHighlight(
+                  text: validateInput(content),
+                  textAlign: TextAlign.center,
+                  textStyle: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 14,
+                  ),
+                  textStyleHighlight: TextStyle(
+                    color: findIndex == curIndex ? Colors.white : Colors.black,
+                    backgroundColor: findIndex == curIndex
+                        ? Colors.red
+                        : Colors.yellowAccent,
+                    // fontWeight: findIndex == curIndex ? FontWeight.bold : null,
+                  ),
+                  caseSensitive: isCaseSensitive,
+                  term: findController.text,
+                )
+            )
         )
       );
   }
@@ -583,6 +613,116 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     }
     return combineValue;
   }
+
+
+  /// 下一页搜索内容
+  /// */
+  void findNext() {
+    if(findController.text.isEmpty){
+      return;
+    }
+    if (totalLogList.isEmpty) {
+      return;
+    }
+    //数据点位类型过滤
+    List<ReportData> resultList;
+    String eventType = eventTypeViewModel.selectValue?.value ?? "";
+    // 过滤当前日志类型，通知页面刷新
+    if(eventType.isEmpty){
+      resultList = totalLogList;
+    }else{
+      resultList = totalLogList
+          .where((element) =>(element.event == eventType))
+          .toList();
+    }
+
+    findIndex = findIndex < 0 ? 0 : findIndex + 1;
+    if (findIndex >= resultList.length) {
+        findIndex = 0;
+    }
+    findIndex = resultList.indexWhere((element) {
+      var find = isCaseSensitive
+          ? findController.text
+          : findController.text.toLowerCase();
+      return isContain(element.position, find) ||
+          isContain(element.itemType, find) ||
+          isContain(element.itemId, find) ||
+          isContain(element.itemName, find) ||
+          isContain(element.itemMark1, find) ||
+          isContain(element.itemMark2, find);
+    },
+      findIndex,
+    );
+    if (findIndex >= 0 && findIndex < resultList.length) {
+      logScrollController.sliverController
+          .jumpToIndex(findIndex, offsetBasedOnBottom: true);
+    }
+    listenerEventType();
+    //notifyListeners();
+  }
+
+  /// 上一页搜索内容
+  /// */
+  void findPrevious() {
+    if(findController.text.isEmpty){
+      return;
+    }
+    if (totalLogList.isEmpty) {
+      return;
+    }
+    //数据点位类型过滤
+    List<ReportData> resultList;
+    String eventType = eventTypeViewModel.selectValue?.value ?? "";
+    // 过滤当前日志类型，通知页面刷新
+    if(eventType.isEmpty){
+      resultList = totalLogList;
+    }else{
+      resultList = totalLogList
+          .where((element) =>(element.event == eventType))
+          .toList();
+    }
+
+    findIndex = findIndex < 0 ? resultList.length - 1 : findIndex - 1;
+    if (findIndex < 0) {
+        return;
+    }
+    findIndex = resultList.lastIndexWhere((element) {
+        var find = isCaseSensitive
+          ? findController.text
+          : findController.text.toLowerCase();
+        // 循环遍历寻找高亮值
+        // for (Properties properties in element?.properties ?? []) {
+        //   ItemMark? itemMarkBean = parseItemMark(properties.itemMark);
+        //   String? itemName = itemMarkBean?.itemName;
+        //   String? itemMark1 = itemMarkBean?.itemMark1;
+        //   String? itemMark2 = itemMarkBean?.itemMark2;
+          return isContain(element.position, find) ||
+              isContain(element.itemType, find) ||
+              isContain(element.itemId, find) ||
+              isContain(element.itemName, find) ||
+              isContain(element.itemMark1, find) ||
+              isContain(element.itemMark2, find);
+        // }
+        // return false;
+      },
+      findIndex,
+    );
+    //页面滚动到搜索内容
+    if (findIndex >= 0 && findIndex < resultList.length) {
+      logScrollController.sliverController.jumpToIndex(findIndex, offsetBasedOnBottom: true);
+    }
+    listenerEventType();
+    //notifyListeners();
+  }
+
+
+
+  /// 是否包含搜索内容
+  /// */
+  bool isContain(String? position, String find) {
+    return position?.toLowerCase()?.contains(find) ?? false;
+  }
+
 
 }
 
