@@ -301,6 +301,7 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
           .toList();
     }
     tableRows.clear();
+    clearKey();
     for (var result in resultList) {
       String? event = result?.event;
       //处理多日志合并的情况
@@ -314,9 +315,11 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
         String? itemName = result?.itemName;
         String? itemMark1 = result?.itemMark1;
         String? itemMark2 = result?.itemMark2;
+        // 生成key
+        GlobalKey key = generateKey();
         tableRows.add(TableRow(
             children: [
-              getCommonText((tableRows.length + 1).toString(), isLimit: true),
+              getOrder((tableRows.length + 1).toString(), key, isLimit: true),
               getCommonText(position),
               getCommonText(itemType),
               getCommonText(event),
@@ -428,9 +431,11 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
         //过滤数据集合
         String eventType = eventTypeViewModel.selectValue?.value ?? "";
         if(eventType == "" || eventType == event){
+          // 生成key
+          GlobalKey key = generateKey();
           tableRows.add(TableRow(
               children: [
-                getCommonText((tableRows.length + 1).toString(), isLimit: true),
+                getOrder((tableRows.length + 1).toString(), key, isLimit: true),
                 getCommonText(position),
                 getCommonText(itemType),
                 getCommonText(event),
@@ -521,14 +526,34 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
   }
 
 
+  //用于定位滚动位置
+  List<GlobalKey> _key = [];
+
+  /// 生成关键唯一key
+  /// */
+  void generateKeyList(int count) {
+    _key.clear();
+    _key = List.generate(count, (index) => GlobalKey());
+  }
+
+  GlobalKey generateKey() {
+    var key = GlobalKey();
+    _key.add(key);
+    return key;
+  }
+
+  void clearKey() {
+    _key.clear();
+  }
+
+
+
   /// 设置输出文案格式
   /// */
-  Container getCommonText(String? content,{bool isLimit = false}) {
+  Container getCommonText(String? content, {bool isLimit = false}) {
     // 当前位置标识
     var curIndex = (tableRows.length);
-    final globalkey = curIndex;
     return Container(
-        key: const GlobalObjectKey(globalkey),
         padding: const EdgeInsets.only(top: 10, bottom: 10),
         child: SizedBox(
             width: isLimit? 30: 160,
@@ -562,6 +587,25 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
         )
       );
   }
+
+  Container getOrder(String? content, GlobalKey gKey, {bool isLimit = false}) {
+    return Container(
+        key: gKey,
+        padding: const EdgeInsets.only(top: 10, bottom: 10),
+        child: SizedBox(
+            width: isLimit? 30: 160,
+            child: Text(validateInput(content),
+                //overflow: TextOverflow.ellipsis,
+                softWrap: true,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 14,
+                ))
+        )
+    );
+  }
+
   // Expanded getCommonText(String? content) {
   //   return Expanded(
   //       child: Text(validateInput(content),
@@ -658,7 +702,9 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     if (findIndex >= 0 && findIndex < resultList.length) {
       // logScrollController.sliverController.jumpToIndex(findIndex, offsetBasedOnBottom: true);
       // logScrollController.jumpTo(logScrollController.position.maxScrollExtent);
-      Scrollable.ensureVisible(_key[value].currentContext);
+      if(findIndex < _key.length){
+          Scrollable.ensureVisible(_key[findIndex].currentContext!!);
+      }
     }
     listenerEventType();
     //notifyListeners();
@@ -712,7 +758,10 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
     );
     //页面滚动到搜索内容
     if (findIndex >= 0 && findIndex < resultList.length) {
-      logScrollController.sliverController.jumpToIndex(findIndex, offsetBasedOnBottom: true);
+      //logScrollController.sliverController.jumpToIndex(findIndex, offsetBasedOnBottom: true);
+      if(findIndex < _key.length){
+        Scrollable.ensureVisible(_key[findIndex].currentContext!!);
+      }
     }
     listenerEventType();
     //notifyListeners();
