@@ -445,18 +445,17 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
                 getCommonText(itemMark2),
               ]
           ));
-          // 上报日志滚动到底部
-          if(isAutoScroll){
-            logScrollController.jumpTo(
-              logScrollController.position.maxScrollExtent,
-            );
-          }
-          notifyListeners();
         }
       }
+      // 上报日志滚动到底部
+      if(isAutoScroll){
+        logScrollController.jumpTo(
+          logScrollController.position.maxScrollExtent,
+        );
+      }
+      notifyListeners();
     }
   }
-
 
 
   /// 日志解析
@@ -479,6 +478,12 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
           // 组合分段日志
           if(jsonData.startsWith(blockStart)){
               combineLog.add(jsonData.substring(blockStart.length, jsonData.length));
+              //调试代码，写日志到文件
+              // var errorMsg = jsonData.substring(blockStart.length, jsonData.length);
+              // File file = File("C:\\Users\\admin\\Desktop\\error${count}.txt");
+              // await file.writeAsString(errorMsg);
+              //向文件末尾追加内容
+              //file.openWrite(mode: FileMode.append).write(errorMsg);
               continue;
 
           } else if (jsonData.startsWith(blockEnd)){
@@ -508,9 +513,13 @@ class AndroidLogViewModel extends BaseViewModel with PackageHelpMixin {
       return null;
     }
     try {
-      ItemMark itemMarkBean = ItemMark.fromJson(
-          jsonDecode(itemMark!));
-      return itemMarkBean;
+      if(itemMark.startsWith("[")){
+        List<dynamic> markList = jsonDecode(itemMark!);
+        return ItemMark.fromJson(markList[0]);
+      }else{
+        Map<String, dynamic> responseData =  jsonDecode(itemMark!);
+        return ItemMark.fromJson(responseData);
+      }
     } on Exception {
       printLog('解析异常');
       return null;
